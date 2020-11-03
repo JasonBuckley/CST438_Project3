@@ -1,0 +1,14 @@
+node_modules
+*.sh
+*.bat
+*.ps1
+
+## Excluding visual studio related files/folders
+obj
+.vs
+tsconfig.json
+*.NJSPROJ
+*.map
+
+## Excluding webstorm specific files
+.idea
