@@ -13,10 +13,21 @@ const ALGORITHM = {
     ROUNDS: 10000
 };
 
+/**
+ * Converts string into buffer for salt
+ * @param {String} salt
+ * returns Buffer containing salt
+ */
 function getSalt(salt) {
     return Buffer.from(salt);
 }
 
+/**
+ * Given a string and salt buffer this method creates an iv
+ * @param {String} password
+ * @param {Buffer} salt
+ * @returns Buffer containing iv
+ */
 function getIV(password, salt) {
     return new Promise((resolve, reject) => {
         crypto.pbkdf2(password, ivSalt, ALGORITHM.ROUNDS, ALGORITHM.IV_LEN, ALGORITHM.DIGEST, (err, derivedKey) => {
@@ -31,20 +42,22 @@ function getIV(password, salt) {
     });
 }
 
+/**
+ * Given a password and a salt this method produces a encryption key
+ * @param {String} password
+ * @param {Buffer} salt
+ * @returns Buffer containing encryption key
+ */
 function getKeyFromPassword(password, salt) {
-    return new Promise((resolve, reject) => {
-        crypto.scrypt(password, salt, ALGORITHM.KEY_LEN, (err, derivedKey) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(derivedKey);
-            }
-        });
-    }).catch((err) => {
-        console.log(err);
-    });
+    return crypto.scryptSync(password, salt, ALGORITHM.KEY_LEN);
 }
 
+/**
+ * Given a plain text message it encrypts it using aes-256-gcm encryption. 
+ * @param {String} message
+ * @param {Buffer} key
+ * @returns Buffer containing encrypted message
+ */
 async function encrypt(message, key) {
     const iv = await getIV(message, getSalt(ivSalt));
     const cipher = crypto.createCipheriv(ALGORITHM.ALGORITHM, key, iv, {
@@ -55,6 +68,12 @@ async function encrypt(message, key) {
     return Buffer.concat([iv, encryptedMessage, cipher.getAuthTag()]);
 }
 
+/**
+ * Given an encrypted text message it decrpts it using aes-256-gcm encryption
+ * @param {Buffer} ciphertext
+ * @param {Buffer} key
+ * @returns Buffer containing decrypted message
+ */
 async function decrypt(ciphertext, key) {
     const authTag = ciphertext.slice(-16);
     const iv = ciphertext.slice(0, 12);
@@ -67,8 +86,18 @@ async function decrypt(ciphertext, key) {
     return Buffer.concat([messagetext, decipher.final()]);
 }
 
+/**
+ * Converts an array of data into a buffer.
+ * @param {Array} data
+ * returns Buffer
+ */
+function arrayToBuffer(data) {
+    return Buffer.from(data);
+}
+
 module.exports.encrypt = encrypt;
 module.exports.decrypt = decrypt;
 module.exports.getIV = getIV;
 module.exports.getKeyFromPassword = getKeyFromPassword;
 module.exports.getSalt = getSalt;
+module.exports.arrayToBuffer = arrayToBuffer;
