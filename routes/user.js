@@ -3,7 +3,7 @@ var router = express.Router();
 const mysql = require("mysql");
 const crypt = require("../routes/Util/crypt");
 
-const KEY = crypt.getKeyFromPassword("password", Buffer.from("salt"));
+const KEY = crypt.getKeyFromPassword(process.env.USER_ENCRYPT_PASSWORD, Buffer.from(process.env.USER_ENCRYPT_SALT));
 
 // gets the config settings for the db
 const sqlConfig = {
@@ -17,6 +17,9 @@ const sqlConfig = {
 // creates a pool to handle query requests.
 const pool = mysql.createPool(sqlConfig);
 
+/**
+ * Attempts to log a user into the website. Either returns true if successful, or false if unsuccessful.
+ */
 router.get('/login', async function (req, res, next) {
     if (!req.query.username && !req.query.password) {
         return res.render('loginPage');
@@ -49,6 +52,14 @@ router.get('/login', async function (req, res, next) {
 });
 
 /**
+ * Logs a user out of the website.
+ */
+router.get('/logout', async function (req, res, next) {
+    delete req.session.user;
+    return res.json({ success: true });
+});
+
+/**
  * Adds a user given they provide a valid username, password, and email.
  */
 router.post('/add', async function (req, res, next) {
@@ -60,10 +71,12 @@ router.post('/add', async function (req, res, next) {
     let password = await crypt.encrypt(req.body.password, KEY);
     let email = await crypt.encrypt(req.body.email, KEY);
 
-    insertId = await checkusername(username)
+    let insertId = await checkusername(username, req.body.username)
+        .then(() => checkPassword(req.body.password))
         .then(() => addUser(username, password, email))
         .catch((err) => {
-            if (err === "Username already used") {
+            if (err === "Username already used" || err === "Invalid Password" || err === "Invalid Username") {
+                console.log(err)
                 return -1;
             } else {
                 console.log(err)
@@ -76,9 +89,11 @@ router.post('/add', async function (req, res, next) {
 
 /**
  * Checks if username is valid and not already in use.
- * @param {any} username
+ * @param {Buffer} username
+ * @param {String} raw_username
+ * @returns Promise determining whether the username is valid.
  */
-async function checkusername(username) {
+async function checkusername(username, raw_username) {
     const query = 'SELECT * FROM User WHERE username = ? LIMIT 1;';
     const values = [username];
 
@@ -89,13 +104,33 @@ async function checkusername(username) {
             } else {
                 if (Array.isArray(results) && results.length > 0 && results[0].userID > -1) {
                     reject("Username already used");
+                } else if (raw_username.length < 8 && raw_username.length > 32) {
+                    reject("Invalid Username");
                 }
 
-                resolve();
+                resolve("Success");
             }
         });
     });
 };
+
+/**
+ * Checks whether a password is at least 8 characters and no more than 32 characters, and contains at least one lowercase letter, one uppercase letter,
+ * one number, and one special character.
+ * @param {String} password
+ * @returns Promise determing whether the password is valid.
+ */
+async function checkPassword(password) {
+    const regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])(?=.*[-!$%^&*()_+|~=`{}\[\]:\/;<>?,.@#]).{8,32}$/;
+
+    return new Promise((resolve, reject) => {
+        if (typeof password === 'string' && password.length && regex.test(password)) {
+            resolve("Success");
+        } else {
+            reject("Invalid Password");
+        }
+    });
+}
 
 /**
  * Adds a user the User table in the db.
@@ -126,9 +161,9 @@ router.get('/', async function (req, res, next) {
         return res.redirect('/user/login');
     }
 
-    username = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.username), KEY)).toString('utf-8');
-    password = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.password.data), KEY)).toString('utf-8');
-    email = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.email.data), KEY)).toString('utf-8');
+    let username = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.username), KEY)).toString('utf-8');
+    let password = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.password.data), KEY)).toString('utf-8');
+    let email = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.email.data), KEY)).toString('utf-8');
 
     return res.json({ username: username, password: password, email: email });
 });
