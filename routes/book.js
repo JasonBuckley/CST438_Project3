@@ -39,7 +39,7 @@ router.get("/", async function (req, res, next) {
 
 router.get("/", async function (req, res, next) {
     let result = await new Promise((resolve, reject) => {
-        const query = "SELECT * FROM Book WHERE name LIKE '%?%' LIMIT 25";
+        const query = `SELECT * FROM Book WHERE name LIKE ${pool.escape('%' + req.query.search + '%')} LIMIT 25;`;
         const values = [req.query.search];
 
         pool.query(query, values, (err, results) => {
