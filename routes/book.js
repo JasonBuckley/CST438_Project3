@@ -73,6 +73,10 @@ router.post("/add", async function (req, res, next) {
 
 function addBook(data) {
     return new Promise((resolve, reject) => {
+        if (!data) {
+            reject("Book not found");
+        }
+
         let author = data.authors ? data.authors[0].name : "Unknown";
         let title = data.title;
         let coverImg = data.cover ? data.cover.medium : "None";
