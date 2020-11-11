@@ -15,6 +15,38 @@ const sqlConfig = {
 // creates a pool to handle query requests.
 const pool = mysql.createPool(sqlConfig);
 
+router.get("/page", async function (req, res, next) {
+    if (!req.query.bookId) {
+        return res.redirect('/');
+    }
+
+    let result = await new Promise((resolve, reject) => {
+        const query = 'SELECT * FROM Book WHERE bookId = ? LIMIT 1';
+        const values = req.query.bookId;
+
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                if (Array.isArray(results) && results.length) {
+                    resolve(results[0]);
+                }
+
+                reject("bookId not found");
+            }
+        });
+    }).catch((err) => {
+        console.log(err);
+        return -1;
+    });
+
+    if (result === -1) {
+        return res.redirect('/');
+    }
+
+    return res.render('bookPage', { book: result });
+});
+
 router.get("/", async function (req, res, next) {
     if (req.query.search) {
         next();
