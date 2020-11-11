@@ -1,0 +1,54 @@
+DROP TABLE IF EXISTS Review;
+DROP TABLE IF EXISTS Book_Genres;
+DROP TABLE IF EXISTS Genre;
+DROP TABLE IF EXISTS Book;
+DROP TABLE IF EXISTS User;
+
+CREATE TABLE User (
+	userId INT NOT NULL AUTO_INCREMENT,
+	username VARBINARY(92) NOT NULL, 
+	password VARBINARY(92) NULL,
+	email VARBINARY(284) NULL,
+	
+	CONSTRAINT unique_username UNIQUE(username),
+	PRIMARY KEY (userId)
+);
+
+CREATE TABLE Book(
+	bookId INT NOT NULL AUTO_INCREMENT,
+	name VARCHAR(255),
+	author VARCHAR(128),
+	coverImg VARCHAR(255),
+	ISBN VARCHAR(13),
+	publisher VARCHAR(128),
+
+	PRIMARY KEY (bookId)
+);
+
+CREATE TABLE Review(
+	reviewId INT NOT NULL AUTO_INCREMENT,
+	userId INT NOT NULL,
+	bookId INT NOT NULL,
+	review varchar(512),
+	rating TINYINT,
+	
+	PRIMARY KEY(reviewId),
+	FOREIGN KEY(userId) REFERENCES User (userId) ON DELETE CASCADE,
+	FOREIGN KEY(bookId) REFERENCES Book (bookId) ON DELETE CASCADE
+);
+
+CREATE TABLE Genre(
+	genreId INT NOT NULL AUTO_INCREMENT,
+	genre VARCHAR(64),
+
+	PRIMARY KEY(genreId)
+);
+
+Create TABLE Book_Genres(
+	genreId INT NOT NULL,
+	bookId INT NOT NULL,
+
+	FOREIGN KEY(genreId) REFERENCES Genre (genreId) ON DELETE CASCADE,
+	FOREIGN KEY(bookId) REFERENCES Book (bookId) ON DELETE CASCADE,
+	PRIMARY KEY(genreId, bookId)
+);

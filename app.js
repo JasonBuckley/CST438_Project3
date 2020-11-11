@@ -3,7 +3,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+
 var cors = require('cors');
+const session = require('express-session');
 
 var hbs = require("hbs");
 hbs.registerPartials(path.join(__dirname, "views/partials"));
@@ -11,11 +13,19 @@ hbs.registerPartials(path.join(__dirname, "views/partials"));
 
 var homeRouter = require('./routes/home');
 var userRouter = require('./routes/user');
+const bookRouter = require('./routes/book');
 
 var bookRouter = require('./routes/book');
 
 var app = express();
 app.use(cors());
+
+// session setup
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -29,6 +39,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', homeRouter);
 app.use('/user', userRouter);
+app.use('/book', bookRouter);
 
 app.use('/book', bookRouter);
 
