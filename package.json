@@ -7,14 +7,28 @@
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
-    "cors": "^2.8.5",
     "core-util-is": "^1.0.2",
-    "debug": "~2.6.9",
-    "express": "~4.16.1",
+    "cors": "^2.8.5",
+    "debug": "^2.6.9",
+    "express": "^4.16.4",
     "express-session": "^1.17.1",
     "hbs": "^4.1.1",
-    "http-errors": "~1.6.3",
-    "morgan": "~1.9.1",
+    "http-errors": "^1.6.3",
+    "morgan": "^1.9.1",
     "mysql": "^2.18.1"
-  }
+  },
+  "description": "",
+  "main": "app.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JasonBuckley/CST438_Project3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JasonBuckley/CST438_Project3/issues"
+  },
+  "homepage": "https://github.com/JasonBuckley/CST438_Project3#readme"
 }
