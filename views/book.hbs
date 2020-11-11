@@ -1,0 +1,138 @@
+<head>
+    <link rel="title icon" type="image/png" href="../images/book.ico" />
+</head>
+<style>
+    /* styles for book container */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 15px;
+        display: flex;
+        /*padding-bottom: 450px;*/
+        border: 1px solid #e1e8ee;
+    }
+
+    /* styles for columns */
+    .left-column {
+        width: 65%;
+        position: relative;
+    }
+
+    .right-column {
+        width: 35%;
+        margin-top: 60px;
+    }
+
+    /* styles left column */
+    .left-column img {
+        /*width: 100%;*/
+        position: absolute;
+        left: 0;
+        top: 0;
+    }
+
+    /* styles for book description */
+    .book-description {
+        border-bottom: 1px solid #e1e8ee;
+        margin-bottom: 20px;
+    }
+
+    .book-description span {
+        font-size: 12px;
+        color: #2196f3;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        text-decoration: none;
+    }
+
+    .book-description h1 {
+        font-weight: 300;
+        font-size: 52px;
+        color: #43484d;
+        letter-spacing: -2px;
+    }
+
+    .book-description p {
+        font-size: 16px;
+        font-weight: 300;
+        color: #86939e;
+        line-height: 24px;
+    }
+
+    .book-author {
+        display: flex;
+        align-items: center;
+    }
+
+    .book-author span {
+        font-size: 26px;
+        font-weight: 300;
+        color: #43474d;
+        margin-right: 20px;
+    }
+
+    .book-author img {
+        border-radius: 50%;
+    }
+</style>
+
+<div class="container" id="product">
+    <!-- Left Column / Book Cover -->
+    <div class="left-column">
+        <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg" id="book" isbn="{{isbn}}">
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+
+        <!-- Book Description -->
+        <div class="book-description">
+            <span id="book-publisher"></span>
+            <h1 id="book-title"></h1>
+            <p id="book-pub-year"></p>
+            <p id="book-isbn"></p>
+        </div>
+        <div class="book-author">
+            <span>Author</span>
+            <img src="" alt="" id="author">
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        let isbn = $("#book").attr("isbn");
+
+        let book = searchByISBN(isbn).then((result) => {
+            let title = result.title;
+            let publisher = result.publishers[0];
+            let publish_year = result.publish_date;
+            console.log(result);
+
+            $("#book-publisher").html(`Publisher: ${publisher}`);
+            $("#book-pub-year").html(`Published: ${publish_year}`);
+            $("#book-title").html(`${title}`);
+            $("#book-isbn").html(`ISBN: ${isbn}`);
+
+
+            let author_id = result.authors[0]["key"].split("/")[2];
+            console.log(author_id);
+            let author_img = `http://covers.openlibrary.org/a/olid/${author_id}-S.jpg`;
+
+            $("#author").attr({ "src": author_img });
+            console.log(author_img);
+        });
+    });
+
+    function searchByISBN(isbn) {
+        return $.ajax({
+            url: `https://openlibrary.org/isbn/${isbn}.json`,
+            method: "GET",
+            dataType: "json",
+            success: function (result, status) {
+                return result;
+            }
+        });
+    }
+
+</script>

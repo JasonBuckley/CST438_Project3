@@ -12,6 +12,11 @@ const sqlConfig = {
     database: process.env.SQL_DATABASE
 };
 
+router.get('/isbn/:isbn', function(req, res, next) {
+    const isbn = [req.params.isbn];
+    res.render('book', {isbn: isbn});
+});
+
 // creates a pool to handle query requests.
 const pool = mysql.createPool(sqlConfig);
 

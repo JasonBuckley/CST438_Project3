@@ -3,13 +3,22 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+
+var cors = require('cors');
 const session = require('express-session');
 
-var indexRouter = require('./routes/index');
+var hbs = require("hbs");
+hbs.registerPartials(path.join(__dirname, "views/partials"));
+
+
+var homeRouter = require('./routes/home');
 var userRouter = require('./routes/user');
 const bookRouter = require('./routes/book');
 
+var bookRouter = require('./routes/book');
+
 var app = express();
+app.use(cors());
 
 // session setup
 app.use(session({
@@ -28,8 +37,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
+app.use('/', homeRouter);
 app.use('/user', userRouter);
+app.use('/book', bookRouter);
+
 app.use('/book', bookRouter);
 
 // catch 404 and forward to error handler
