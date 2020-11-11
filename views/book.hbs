@@ -1,3 +1,6 @@
+<head>
+    <link rel="title icon" type="image/png" href="../images/book.ico" />
+</head>
 <style>
     /* styles for book container */
     .container {
@@ -55,12 +58,28 @@
         color: #86939e;
         line-height: 24px;
     }
+
+    .book-author {
+        display: flex;
+        align-items: center;
+    }
+
+    .book-author span {
+        font-size: 26px;
+        font-weight: 300;
+        color: #43474d;
+        margin-right: 20px;
+    }
+
+    .book-author img {
+        border-radius: 50%;
+    }
 </style>
 
 <div class="container" id="product">
     <!-- Left Column / Book Cover -->
     <div class="left-column">
-        <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg">
+        <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg" id="book" isbn="{{isbn}}">
     </div>
 
     <!-- Right Column -->
@@ -68,15 +87,43 @@
 
         <!-- Book Description -->
         <div class="book-description">
-            <span>Publisher</span>
-            <h1> Title </h1>
-            <p> Author </p>
-            <p> ISBN {{ isbn }} </p>
+            <span id="book-publisher"></span>
+            <h1 id="book-title"></h1>
+            <p id="book-pub-year"></p>
+            <p id="book-isbn"></p>
+        </div>
+        <div class="book-author">
+            <span>Author</span>
+            <img src="" alt="" id="author">
         </div>
     </div>
 </div>
 
 <script>
+    $(document).ready(function () {
+        let isbn = $("#book").attr("isbn");
+
+        let book = searchByISBN(isbn).then((result) => {
+            let title = result.title;
+            let publisher = result.publishers[0];
+            let publish_year = result.publish_date;
+            console.log(result);
+
+            $("#book-publisher").html(`Publisher: ${publisher}`);
+            $("#book-pub-year").html(`Published: ${publish_year}`);
+            $("#book-title").html(`${title}`);
+            $("#book-isbn").html(`ISBN: ${isbn}`);
+
+
+            let author_id = result.authors[0]["key"].split("/")[2];
+            console.log(author_id);
+            let author_img = `http://covers.openlibrary.org/a/olid/${author_id}-S.jpg`;
+
+            $("#author").attr({ "src": author_img });
+            console.log(author_img);
+        });
+    });
+
     function searchByISBN(isbn) {
         return $.ajax({
             url: `https://openlibrary.org/isbn/${isbn}.json`,
@@ -88,7 +135,4 @@
         });
     }
 
-    let book = searchByISBN(isbn).then((result) => {
-        console.log(result);
-    });
 </script>
