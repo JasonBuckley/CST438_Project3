@@ -1,0 +1,44 @@
+<head>
+    <link rel='stylesheet' href='/stylesheets/nav.css' />
+</head>
+
+<body>
+    <div class="top-nav-bar">
+        <div class="search-box">
+            <div class="logo" id="logo">
+                <img src="../images/book.ico" alt="" style="max-height: 40px;">
+                <h1>ODFBC</h1>
+            </div>
+            <input type="text" class="form-control" id="search-bar" placeholder="Find your new favorite book">
+            <span class="input-group-text" id="search-btn"><i class="fa fa-search"></i></span>
+        </div>
+        <div class="menu-bar">
+            <ul class="menu">
+                <li class="option"><a href="#" class="tag">option</a>
+                </li>
+                <li class="option"><a href="#" class="tag"></i>option</a>
+                </li>
+                {{#if username}}
+                <li class="option dropdown">
+                    <a href="#" class="tag dropdown-toggle" data-toggle="dropdown">
+                        {{ username }} <i class="fa fa-user-circle fa-lg"></i>
+                    </a>
+
+                    <div>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" class="a" id="my-account">My Account</a></li>
+                            <li><a href="#" class="a" id="logout-opt">Logout</a></li>
+                        </ul>
+                    </div>
+                </li>
+                {{else}}
+                <li data-toggle="modal" data-target="#loginForm" class="option">
+                    <a href="#" class="tag">
+                        login <i class="fa fa-user-circle fa-lg"></i>
+                    </a>
+                </li>
+                {{/if}}
+            </ul>
+        </div>
+    </div>
+</body>

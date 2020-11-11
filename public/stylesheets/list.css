@@ -1,0 +1,37 @@
+.featured {
+  padding: 20px;
+}
+
+.book-row {
+  display: inline-flex;
+}
+
+.title-box {
+  padding: 5px;
+  height: 40px;
+  margin-bottom: 30px;
+  display: flex;
+}
+
+.title-box h2 {
+  font-size: 24px;
+}
+
+.product-top img {
+  width: 100%;
+  transition: 1s;
+}
+
+.product-top img:hover {
+  transform: scale(1.1);
+}
+
+.product-bottom h3 {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.product-bottom h5 {
+  font-size: 15px;
+  padding-bottom: 10px;
+}

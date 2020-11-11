@@ -1,0 +1,21 @@
+/* styles for footer */
+
+.footer {
+  margin-top: 100vh;
+  background: black;
+  color: white;
+  margin-bottom: 0px;
+
+  /* position: absolute; */
+  /* bottom: 0; */
+  width: 100%;
+}
+
+.footer h1 {
+  font-size: 15px;
+  margin: 25px 0;
+}
+
+.footer p {
+  font-size: 12px;
+}
