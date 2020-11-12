@@ -4,7 +4,8 @@ const crypt = require('../routes/Util/crypt');
 describe('Encrpytion Tests:', function () {
     describe('#getSalt(salt)', function () {
         it('Given a string should return a buffer containing salt.', function () {
-            assert.equal(true, Buffer.isBuffer(crypt.getSalt("salt")));
+            let salt = crypt.getSalt("salt");
+            assert.equal(true, Buffer.isBuffer(salt) && salt.length == 4);
         });
     });
 
