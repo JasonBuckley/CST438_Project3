@@ -5,8 +5,17 @@ language: node_js
 node_js:
   - node
 
+services:
+  - mysql
+
+addons:
+  mariadb:10.3
+
 install:
   - npm ci
+
+before_install:
+  - mysql -u root --password="" < db_script.sql
 
 script:
   - npm test
