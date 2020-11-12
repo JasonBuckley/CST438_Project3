@@ -1,0 +1,26 @@
+<h1>{{title}}</h1>
+<p>Welcome to {{title}}</p>
+
+<ul>
+    <li><a href="/">Home(refresh)</a></li>
+    <li><a href="/bookPage">Reviews</a></li>
+    <li><a href="/">TestLink</a></li>
+    <li></li>
+    <li></li>
+</ul>
+
+    <form action='/' method='GET'>
+            <!--this is to display product-->
+        <div class="grid-container">
+        {{!--<% bookInfo.forEach(function(b) { %>--}}
+            <div class="card" style="width: 18rem;">
+                <img class="card-img-top" src="<%= book.coverImg %>" alt="Card image cap"/>
+                <div class="card-body">
+                <h5 class="card-title"><%= book.name %></h5>
+                <p>by <%= book.author %></p>
+                <p class="card-text"><b>$<%= book.ISBN %></b></p>
+                </div>
+            </div>
+                {{!--<% }) %>--}}
+        </div>  
+    </form>
