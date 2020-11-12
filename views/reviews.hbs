@@ -1,26 +1,31 @@
-{{ nav }}
+{{>nav}}
+<style>
+    .review{
+        /*background-color:maroon;*/
+        background-image: url('/CST438_Project3/public/images/bck.jpg');
+    }
+    .center{
+    margin-left: auto;
+    margin-right: auto;
+    width: 8em;
+    justify-content:center;
+    }
+</style>
 <script src="./javascripts/reviews.js"></script>
 <h1>{{title}}</h1>
 <p>Welcome to {{title}}</p>
 
-<ul>
-    <li><a href="/home">Home(refresh)</a></li>
-    <li><a href="/reviews">Reviews</a></li>
-    <li><a href="/login">Login</a></li>
-    <li></li>
-    <li></li>
-</ul>
 
-    <form name="bookdisplay" action='/' method='GET'>
+    <form class="review" name="bookdisplay" action='/' method='GET'>
             <!--this is to display product-->
         <div class="grid-container">
         {{!--<% bookInfo.forEach(function(b) { %>--}}
             <div class="card" style="width: 18rem;">
-                <img class="card-img-top" src="<%= book.coverImg %>" alt="Card image cap"/>
+                <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg" id="book" isbn="{{isbn}}">
                 <div class="card-body">
-                <h5 class="card-title"><%= book.name %></h5>
-                <p>by <%= book.author %></p>
-                <p class="card-text"><b>$<%= book.ISBN %></b></p>
+                <h5 class="card-title">{{book.name}}</h5>
+                <p>by {{author}}></p>
+                <p class="card-text"><b>ISBN:{{ book.ISBN}}</b></p>
                 </div>
             </div>
                 {{!--<% }) %>--}}
@@ -47,3 +52,5 @@
     </div>
     <input type="submit" value="Submit">
     </form>
+        <li class=center><a href="/">Home(refresh)</a></li>
+        <li class=center><a href="/reviews">Refresh Page</a></li>

@@ -2,7 +2,11 @@
 body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  /*background-image: url("/CST438_Project3/public/images/bck.jpg");*/
+  /*background-color: maroon;*/
+  /*color:white;*/
 }
+
 
 a {
   color: #00B7FF;
