@@ -9,15 +9,13 @@ services:
   - mysql
 
 addons:
-  - mariadb
+  mariadb:10.3
 
 install:
   - npm ci
 
-before_script:
-  - mysql -u root
-  - mysql CREATE DATABASE IF NOT EXISTS ODFBC
-  - mysql root < ./db_script.sql
+before_install:
+  - mysql -u root --password="" < db_script.sql
 
 script:
   - npm test
