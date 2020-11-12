@@ -15,7 +15,8 @@ install:
   - npm ci
 
 before_script:
-  - mysql --user=root --password=password ODFBC
+  - mysql -u root -p
+  - mysql CREATE DATABASE IF NOT EXISTS ODFBC
   - mysql root < ./db_script.sql
 
 script:
@@ -23,7 +24,7 @@ script:
 
 env:
   - SQL_USERNAME=root
-  - SQL_PASSWORD=password
+  - SQL_PASSWORD=""
   - SQL_HOST="127.0.0.1"
   - SQL_PORT="3306"
   - SQL_DATABASE=ODFBC
