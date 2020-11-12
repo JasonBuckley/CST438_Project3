@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const mysql = require("mysql");
 const crypt = require("../routes/Util/crypt");
+const { route } = require('./home');
 
 const KEY = crypt.getKeyFromPassword(process.env.USER_ENCRYPT_PASSWORD, Buffer.from(process.env.USER_ENCRYPT_SALT));
 
@@ -26,8 +27,6 @@ router.get('/login', async function (req, res, next) {
     }
 
     const query = 'SELECT * FROM User WHERE username = ? AND password = ? LIMIT 1;';
-
-    console.log(req.query);
 
     let username = await crypt.encrypt(req.query.username, KEY);
     let password = await crypt.encrypt(req.query.password, KEY);
@@ -96,7 +95,7 @@ router.post('/add', async function (req, res, next) {
 router.put('/update', async function (req, res, next) {
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.body.username && !req.body.password && !req.body.username) {
+    } else if (!req.body.username && !req.body.password && !req.body.email) {
         return res.json({ success: false });
     }
 
@@ -125,6 +124,25 @@ router.put('/update', async function (req, res, next) {
     }
 
     return res.json({ success: result.affectedRows > 0 });
+});
+
+/**
+ * Given a valid password and user with a session this route removes there account.
+ */
+router.delete('/remove', async function (req, res, next) {
+    if (!req.session.user) {
+        return res.redirect("/user/login");
+    } else if (!req.body.password) {
+        return res.json({ success: false });
+    }
+
+    let password = await crypt.encrypt(req.body.password, KEY);
+    let insertId = await deleteUser(req.session.user.userId, password)
+        .catch((err) => {
+            console.log(err);
+        });
+
+    return res.json({ success: insertId > -1 });
 });
 
 /**
@@ -231,6 +249,28 @@ async function updateUser(username, password, email, user) {
                 reject(err);
             } else {
                 resolve({ affectedRows: results.affectedRows, username: new_username, password: new_password, email: new_email });
+            }
+        });
+    });
+}
+
+/**
+ * Deletes a user from the table in the db.
+ * @param {int} userId
+ * @param {Buffer} password
+ * @returns Promise
+ */
+async function deleteUser(userId, password) {
+    const query = "DELETE FROM User WHERE userId = ? AND password = ?";
+    const values = [userId, password];
+
+    return new Promise((resolve, reject) => {
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                req.err = err;
+                reject(err);
+            } else {
+                resolve(results.insertId);
             }
         });
     });
