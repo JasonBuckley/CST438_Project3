@@ -4,13 +4,14 @@ const crypt = require('../routes/Util/crypt');
 describe('Encrpytion Tests:', function () {
     describe('#getSalt(salt)', function () {
         it('Given a string should return a buffer containing salt.', function () {
-            assert.equal(true, Buffer.isBuffer(crypt.getSalt("salt")));
+            let salt = crypt.getSalt("salt");
+            assert.equal(true, Buffer.isBuffer(salt) && salt.length == 4);
         });
     });
 
     describe('#getIV(password, salt)', function () {
         it('Given a string, and buffer should return a buffer containing iv.', async function () {
-            let iv = await crypt.getIV("password", Buffer.isBuffer(crypt.getSalt("salt")));
+            let iv = await crypt.getIV("password", crypt.getSalt("salt"));
             assert.equal(true, Buffer.isBuffer(iv) && iv.length == 12);
         });
     });
