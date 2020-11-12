@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "mocha"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
@@ -19,7 +20,9 @@
   },
   "description": "",
   "main": "app.js",
-  "devDependencies": {},
+  "devDependencies": {
+    "mocha": "^8.2.1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JasonBuckley/CST438_Project3.git"
