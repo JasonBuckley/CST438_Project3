@@ -5,8 +5,25 @@ language: node_js
 node_js:
   - node
 
+services:
+  - mysql
+
+addons:
+  - mariadb
+
 install:
   - npm ci
 
+before_script:
+  - mysql --user=root --password=password ODFBC
+  - mysql root < ./db_script.sql
+
 script:
   - npm test
+
+env:
+  - SQL_USERNAME=root
+  - SQL_PASSWORD=password
+  - SQL_HOST="127.0.0.1"
+  - SQL_PORT="3306"
+  - SQL_DATABASE=ODFBC
