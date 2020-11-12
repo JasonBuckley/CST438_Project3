@@ -14,44 +14,6 @@ describe('User Backend Tests:', function () {
         server.close();
     });
 
-    describe('#LoginRoute', function () {
-        it('Tests logging in a user?', async function () {
-            let options = {
-                hostname: 'localhost',
-                port: 3000,
-                path: '/user/login?username=username&password=Password1*',
-                method: 'GET',
-            };
-
-            let resp = await request(options);
-            options.path = '/user/login?username=username&password=Password1';
-            let resp2 = await request(options);
-
-            assert.equal(true, resp.success);
-            assert.equal(false, resp2.success);
-
-        });
-    });
-
-    describe('#LogoutRoute', function () {
-        it('Tests logging out a user?', async function () {
-            let options = {
-                hostname: 'localhost',
-                port: 3000,
-                path: '/user/login?username=username&password=Password1*',
-                method: 'GET',
-            };
-
-            let resp = await request(options);
-            options.path = '/user/login?username=username&password=Password1';
-            assert.equal(true, resp.success);
-
-            options.path = '/user/logout'
-            let resp2 = await request(options);
-            assert.equal(true, resp2.success);
-        });
-    });
-
     describe('#addRoute', function () {
         it('Tests adding a user?', async function () {
             let data = JSON.stringify({ username: "username1", password: "Password1*", email: "email1@email.com" });
@@ -79,6 +41,43 @@ describe('User Backend Tests:', function () {
             });
 
             assert.equal(false, resp2.insertId > -1);
+        });
+    });
+
+    describe('#LoginRoute', function () {
+        it('Tests logging in a user?', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/user/login?username=username1&password=Password1*',
+                method: 'GET',
+            };
+
+            let resp = await request(options);
+            options.path = '/user/login?username=username1&password=Password1';
+            let resp2 = await request(options);
+
+            assert.equal(true, resp.success);
+            assert.equal(false, resp2.success);
+
+        });
+    });
+
+    describe('#LogoutRoute', function () {
+        it('Tests logging out a user?', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/user/login?username=username1&password=Password1*',
+                method: 'GET',
+            };
+
+            let resp = await request(options);
+            assert.equal(true, resp.success);
+
+            options.path = '/user/logout'
+            let resp2 = await request(options);
+            assert.equal(true, resp2.success);
         });
     });
 
