@@ -104,6 +104,7 @@
 
 <script>
     $(document).ready(function () {
+        /*global $*/
         let isbn = $("#book").attr("isbn");
 
         let book = searchByISBN(isbn).then((result) => {
