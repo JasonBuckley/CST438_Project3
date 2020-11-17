@@ -68,12 +68,12 @@
         </div>  
     </form>
 <div class="center" id="review section" name="reviews">
-    <form name="commentBox"action="/CST438_Project3/routes/reviews.js" method="post">
+    <form name="commentBox" action="/reviews/add" method="post">
         <div>
-            <textarea>Comments</textarea>
+            <textarea name="reviewText">Comments</textarea>
         </div>
         <div class="btn">
-            <input id="reviewSubmit" type="submit" value="Submit">
+            <input id="reviewSubmit" type="submit" value="Submit" name="reviewSubmit">
             <button id="reviewEdit">Edit</button>
             <button id="reviewDelete">Delete</button>
         </div>
@@ -87,5 +87,7 @@
         <li class=none><a href="/">Home</a></li>
         <li class=none><a href="/reviews">Refresh <strong>THIS</strong> Page</a></li>
     </div>
+    
+    
         
 </body>
