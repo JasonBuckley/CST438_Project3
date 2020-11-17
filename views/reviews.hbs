@@ -39,7 +39,7 @@
         background-color: #273c75;
     }
     button{
-        color: grey;
+        color: black;
         background-color:transparent;
     }
     /*.btn{*/
@@ -48,7 +48,7 @@
 </style>
 <script src="./javascripts/reviews.js"></script>
 <h1>{{title}}</h1>
-<p>Welcome to {{title}}</p>
+<p>Review Page for: {{title}}</p>
 
 <body>
     <form class="center" name="bookdisplay" action='/' method='GET'>
@@ -59,7 +59,7 @@
                 <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg" id="book" isbn="{{isbn}}">
                 <div class="card-body">
                 <h5 class="card-title">{{book.name}}</h5>
-                <p>by {{author}}></p>
+                <p>by {{book.author}}></p>
                 <p class="card-text"><b>ISBN:{{ book.ISBN}}</b></p>
                 </div>
             </div>
