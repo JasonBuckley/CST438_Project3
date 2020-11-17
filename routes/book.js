@@ -49,7 +49,7 @@ router.get("/page", async function (req, res, next) {
         return res.redirect('/');
     }
 
-    return res.render('bookPage', { book: result });
+    return res.render('reviews', { book: result });
 });
 
 router.get("/", async function (req, res, next) {
