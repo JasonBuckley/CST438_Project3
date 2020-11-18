@@ -14,6 +14,7 @@ hbs.registerPartials(path.join(__dirname, "views/partials"));
 var homeRouter = require('./routes/home');
 var userRouter = require('./routes/user');
 const bookRouter = require('./routes/book');
+const reviewRouter = require('./routes/review');
 
 var app = express();
 app.use(cors());
@@ -38,6 +39,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', homeRouter);
 app.use('/user', userRouter);
 app.use('/book', bookRouter);
+app.use('/review', reviewRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
