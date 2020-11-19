@@ -1,4 +1,4 @@
-# CST438_Project3 ## [Current Project Status](https://github.com/JasonBuckley/CST438_Project3/projects/1)
+# CST438_Project3 -> [Current Project Status](https://github.com/JasonBuckley/CST438_Project3/projects/1)
 ### Authors
 - Jason Buckley   
   - [JasonBuckley](https://github.com/JasonBuckley)  
