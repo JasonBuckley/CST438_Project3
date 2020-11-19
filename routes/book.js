@@ -4,8 +4,6 @@ const mysql = require("mysql");
 const https = require("https");
 let GENRES;
 
-
-
 // gets the config settings for the db
 const sqlConfig = {
     user: process.env.SQL_USERNAME,
@@ -15,13 +13,13 @@ const sqlConfig = {
     database: process.env.SQL_DATABASE
 };
 
+// creates a pool to handle query requests.
+const pool = mysql.createPool(sqlConfig);
+
 router.get('/isbn/:isbn', function (req, res, next) {
     const isbn = [req.params.isbn];
     res.render('book', { isbn: isbn });
 });
-
-// creates a pool to handle query requests.
-const pool = mysql.createPool(sqlConfig);
 
 /**
  * Renders a page with specific information for a book.
@@ -31,6 +29,7 @@ router.get("/page", async function (req, res, next) {
         return res.redirect('/');
     }
 
+    // Get book's info
     let result = await new Promise((resolve, reject) => {
         const query = 'SELECT * FROM Book WHERE bookId = ? LIMIT 1';
         const values = req.query.bookId;
@@ -51,11 +50,29 @@ router.get("/page", async function (req, res, next) {
         return -1;
     });
 
+    // Gets book's genres
+    let genres = await new Promise((resolve, reject) => {
+        const query = 'SELECT genre FROM Book_Genres NATURAL JOIN Genre WHERE bookId = ?';
+        const values = req.query.bookId;
+
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
+    });
+
+    if (!Array.isArray(genres) && !genres.length && genres.length < 1) {
+        genres = [];
+    }
+
     if (result === -1) {
         return res.redirect('/');
     }
 
-    return res.render('bookPage', { book: result });
+    return res.render('bookPage', { book: result, genres: genres });
 });
 
 /**
@@ -140,7 +157,77 @@ router.post("/add", async function (req, res, next) {
             });
     }
 
+    delete url;
     return;
+});
+
+/**
+ * This route updates a book's information.
+ */
+router.post("/update", async function (req, res, next) {
+    if (!req.body || !req.body.bookId) {
+        return res.json({ success: false });
+    }
+
+    let result = await updateBook(req.body)
+        .catch((err) => {
+            console.log(err);
+            return -1;
+        });
+
+    return res.json({ success: result > 0 });
+});
+
+/**
+ * Adds a genre to the db.
+ */
+router.post("/genre/add", async function (req, res, next) {
+    if (!req.body.genre) {
+        return res.json({ success: false });
+    }
+
+    const query = "INSERT INTO Genre VALUES(NULL, ?);";
+    const values = [req.body.genre];
+
+    let insertId = await new Promise((resolve, reject) => {
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results.insertId);
+            }
+        });
+    }).catch((err) => {
+        return -1;
+    });
+
+    res.json({ success: insertId > -1 });
+});
+
+/**
+ * Removes a genre from the db.
+ */
+router.post("/genre/remove", async function (req, res, next) {
+    if (!req.body.id) {
+        return res.json({ success: false });
+    }
+
+    const query = "DELETE FROM Genre WHERE genreId = ?;";
+    const values = [req.body.id];
+
+    let affectedRows = await new Promise((resolve, reject) => {
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results.affectedRows);
+            }
+        });
+    }).catch((err) => {
+        return -1;
+    });
+
+    res.json({ success: affectedRows > 0 });
 });
 
 /**
@@ -169,6 +256,41 @@ function addBook(data) {
                 reject(err);
             } else {
                 resolve({ insertId: results.insertId, subjects: subjects });
+            }
+        });
+    });
+}
+
+/**
+ * Given a json it will attempt to update a books information in the db.
+ * @param {json} data
+ * return Promise containing rows affected.
+ */
+function updateBook(data) {
+    return new Promise((resolve, reject) => {
+        if (!data) {
+            reject("Need data to update book!");
+        }
+
+        let author = data.author;
+        let title = data.title;
+        let coverImg = data.coverImg;
+        let publisher = data.publisher;
+        let bookId = data.bookId;
+
+        const query = 'UPDATE Book SET '
+            + 'name = IFNULL(?, name), '
+            + 'author = IFNULL(?, author), '
+            + 'coverImg = IFNULL(?, coverImg), '
+            + 'publisher = IFNULL(?, publisher) '
+            + 'WHERE bookId = ?;'
+        const values = [author, title, coverImg, publisher, bookId];
+
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results.affectedRows);
             }
         });
     });
