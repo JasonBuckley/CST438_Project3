@@ -46,7 +46,7 @@
     /*    display:none;*/
     /*}*/
 </style>
-<script src="./javascripts/reviews.js"></script>
+<script src="/javascripts/review.js"></script>
 <h1>{{title}}</h1>
 <p>Review Page for: {{title}}</p>
 
@@ -67,8 +67,15 @@
                 {{!--<% }) %>--}}
         </div>  
     </form>
+<div name="displayComments">
+    <form action="review/get" method="GET">
+        
+    </form>
+    {{!--<span id="commentSpan">{{reviews.comments}}</span>--}}
+    <br>
+</div>
 <div class="center" id="review section" name="reviews">
-    <form name="commentBox" action="/reviews/add" method="post">
+    <form name="commentBox" action="/review/add" method="post">
         <div>
             <textarea name="reviewText">Comments</textarea>
         </div>
