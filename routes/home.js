@@ -1,58 +1,53 @@
-var express = require('express');
+const express = require('express');
 const router = express.Router();
-const https = require("https");
+
+const search = require("../routes/Util/search");
 
 
 router.get('/', function(req, res, next) {
     res.render('home');
 });
 
+/**
+ * Searches for a book using a third party api given a title
+ */
 router.get('/search', async function(req, res, next) {
-    let title = req.query.title.replace(/\s+/g,'+');
-    const url = `https://openlibrary.org/search.json?title=${title}`;
+    let title = req.query.title;
 
-    return res.json({ url: url});
+    let result = await search.searchByTitle(title);
 
-    // let result = await request(url)
-    //     .then((data) => console.log(data))
-    //     .catch((err) => {
-    //         console.log(err);
-    //         return -1;
-    //     });
+    books = [];
 
-    // return res.json({ success: result > -1 });
+    if (result.numFound == 0 || result.docs.length == 0) {
+        return res.json({ books: books, amount: books.length });
+    }
+
+    result.docs.forEach((book) => {
+        if (validate(book)) {
+            books.push(book);
+        }
+    });
+
+    return res.json({ books: books, amount: books.length });
 });
 
-function request(url) {
-    return new Promise((resolve, reject) => {
-        let req = https.request(url, (res) => {
-            let body = "";
-
-            res.on('data', (chunk) => {
-                body += chunk;
-            });
-
-            res.on('end', () => {
-                if (res.statusCode != "200") {
-                    reject("Call to api end point has failed with response code " + res.statusCode);
-                } else {
-                    try {
-                        let data = JSON.parse(body);
-                        resolve(data);
-                    } catch (e) {
-                        reject('Error parsing JSON!');
-                    }
-
-                }
-            });
-
-            res.on('error', (err) => {
-                reject(err);
-            });
-        });
-
-        req.end();
-    });
+/**
+ * Checks book json object for all attributes
+ * @param book
+ * @returns boolean
+ */
+function validate(book) {
+    if (!book.author_name || book.author_name.length == 0) {
+        return false;
+    } else if (!book.title) {
+        return false;
+    } else if (!book.isbn || book.isbn.length == 0) {
+        return false;
+    } else if (!book.publisher || book.publisher.length == 0) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 module.exports = router;
