@@ -16,6 +16,7 @@ CREATE TABLE User (
 	CONSTRAINT unique_username UNIQUE(username),
 	PRIMARY KEY (userId)
 );
+ALTER TABLE User ADD accessLevel TINYINT;
 
 CREATE TABLE Book(
 	bookId INT NOT NULL AUTO_INCREMENT,
