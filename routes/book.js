@@ -54,7 +54,7 @@ router.get("/page", async function (req, res, next) {
     if (result === -1) {
         return res.redirect('/');
     }
-
+  
     // Gets book's genres
     let genres = await new Promise((resolve, reject) => {
         const query = 'SELECT genre FROM Book_Genres NATURAL JOIN Genre WHERE bookId = ?';
@@ -78,7 +78,7 @@ router.get("/page", async function (req, res, next) {
         return res.json({ book: result, genres: genres });
     }
 
-    return res.render('bookPage', { book: result, genres: genres });
+    return res.render('reviews', { book: result });
 });
 
 /**

@@ -3,6 +3,7 @@ var router = express.Router();
 const mysql = require("mysql");
 const crypt = require("../routes/Util/crypt");
 const { route } = require('./home');
+const { Buffer } = require("buffer");
 
 const KEY = crypt.getKeyFromPassword(process.env.USER_ENCRYPT_PASSWORD, Buffer.from(process.env.USER_ENCRYPT_SALT));
 
