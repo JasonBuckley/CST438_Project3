@@ -214,7 +214,7 @@ async function checkEmail(email) {
  * @returns Promise
  */
 async function addUser(username, password, email) {
-    const query = 'INSERT INTO User VALUES(NULL, ?, ?, ?);';
+    const query = 'INSERT INTO User VALUES(NULL, ?, ?, ?, 0);';
     const values = [username, password, email];
 
     return new Promise((resolve, reject) => {
