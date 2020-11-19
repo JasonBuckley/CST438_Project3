@@ -25,17 +25,18 @@ router.get('/isbn/:isbn', function (req, res, next) {
  * Renders a page with specific information for a book.
  */
 router.get("/page", async function (req, res, next) {
-    if (!req.query.bookId) {
+    if ((!req.query.bookId || req.query.isbn) && (req.query.bookId || !req.query.isbn)) {
         return res.redirect('/');
     }
 
     // Get book's info
     let result = await new Promise((resolve, reject) => {
-        const query = 'SELECT * FROM Book WHERE bookId = ? LIMIT 1';
-        const values = req.query.bookId;
+        const query = 'SELECT * FROM Book WHERE bookId = ? OR ISBN13 = ? OR ISBN10 = ? LIMIT 1';
+        const values = [req.query.bookId ? req.query.bookId : "", req.query.isbn ? req.query.isbn : "", req.query.isbn ? req.query.isbn : ""];
 
         pool.query(query, values, (err, results) => {
             if (err) {
+                console.log(err);
                 reject(err);
             } else {
                 if (Array.isArray(results) && results.length) {
@@ -50,10 +51,14 @@ router.get("/page", async function (req, res, next) {
         return -1;
     });
 
+    if (result === -1) {
+        return res.redirect('/');
+    }
+
     // Gets book's genres
     let genres = await new Promise((resolve, reject) => {
         const query = 'SELECT genre FROM Book_Genres NATURAL JOIN Genre WHERE bookId = ?';
-        const values = req.query.bookId;
+        const values = req.query.bookId ? req.query.bookId : result.bookId;
 
         pool.query(query, values, (err, results) => {
             if (err) {
@@ -68,8 +73,9 @@ router.get("/page", async function (req, res, next) {
         genres = [];
     }
 
-    if (result === -1) {
-        return res.redirect('/');
+    // returns info in JSON.
+    if (req.query.format == 'JSON') {
+        return res.json({ book: result, genres: genres });
     }
 
     return res.render('bookPage', { book: result, genres: genres });
@@ -164,7 +170,7 @@ router.post("/add", async function (req, res, next) {
 /**
  * This route updates a book's information.
  */
-router.post("/update", async function (req, res, next) {
+router.put("/update", async function (req, res, next) {
     if (!req.body || !req.body.bookId) {
         return res.json({ success: false });
     }
@@ -284,7 +290,7 @@ function updateBook(data) {
             + 'coverImg = IFNULL(?, coverImg), '
             + 'publisher = IFNULL(?, publisher) '
             + 'WHERE bookId = ?;'
-        const values = [author, title, coverImg, publisher, bookId];
+        const values = [title, author, coverImg, publisher, bookId];
 
         pool.query(query, values, (err, results) => {
             if (err) {
