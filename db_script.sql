@@ -22,9 +22,11 @@ CREATE TABLE Book(
 	name VARCHAR(255),
 	author VARCHAR(128),
 	coverImg VARCHAR(255),
-	ISBN VARCHAR(13),
+	ISBN13 VARCHAR(13),
+	ISBN10 VARCHAR(10),
 	publisher VARCHAR(128),
 
+	CONSTRAINT unique_ISBN UNIQUE(ISBN13, ISBN10),
 	PRIMARY KEY (bookId)
 );
 
@@ -46,6 +48,50 @@ CREATE TABLE Genre(
 
 	PRIMARY KEY(genreId)
 );
+
+INSERT INTO Genre (genreId, genre) VALUES 
+(NULL, 'Fiction'), 
+(NULL, 'Non-Fiction'),
+(NULL, 'Horror'),
+(NULL, 'Fantasy'),
+(NULL, 'Science Fiction'),
+(NULL, 'Historical Fiction'),
+(NULL, 'Romance'),
+(NULL, 'History'),
+(NULL, 'Literacy'),
+(NULL, 'Literacy Fiction'),
+(Null, 'Memoir'),
+(NULL, 'Action'),
+(NULL, 'Adventure'),
+(NULL, 'Poetry'),
+(NULL, 'Thriller'),
+(NULL, 'Crime'),
+(NULL, 'Mystery'),
+(NULL, 'Drama'),
+(NULL, 'Humour'),
+(NULL, 'Comedy'),
+(NULL, 'Biography'),
+(NULL, 'Anthology'),
+(NULL, 'Politics'),
+(NULL, 'Political Science'),
+(NULL, 'Political Fiction'),
+(NULL, 'Adventure Fiction'),
+(NULL, 'Cooking'),
+(NULL, 'Dystopia'),
+(NULL, 'Fairy Tale'),
+(NULL, 'Western Fiction'),
+(NULL, 'Alternate History'),
+(NULL, 'Science'),
+(NULL, 'Philosophy'),
+(NULL, 'Detective'),
+(NULL, 'Business'),
+(NULL, 'Economics'),
+(NULL, 'Textbook'),
+(NULL, 'Educational'),
+(NULL, 'Entertainment'),
+(NULL, 'Autobiograph'),
+(NULL, 'Myth'),
+(NULL, 'Satire');
 
 Create TABLE Book_Genres(
 	genreId INT NOT NULL,
