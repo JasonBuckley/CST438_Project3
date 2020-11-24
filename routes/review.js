@@ -25,8 +25,8 @@ router.post('/add', async function(req, res) {
         return res.json({ success: false });
     }
 
-    let query = 'SELECT bookId FROM Book WHERE ISBN = ? LIMIT 1;';
-    let values = [req.query.isbn];
+    let query = 'SELECT bookId FROM Book WHERE ISBN10 = ? OR ISBN13 = ? LIMIT 1;';
+    let values = [req.query.isbn, req.query.isbn];
 
     let bookId = await dbQuery(query, values);
 
@@ -108,18 +108,34 @@ router.put('/update', async function(req, res) {
     return res.json({ success: result.affectedRows > 0 });
 });
 
+
+/**
+ * Deletes a review given a valid review attributes and the correct access level
+ */
 router.delete('/delete', async function(req, res) {
+    // Ensure a user is logged in and all required parameters are present
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.reviewId || !req.query.bookId || !req.query.review || !req.query.rating) {
+    } else if (!req.query.reviewId || !req.query.userId || !req.query.bookId || !req.query.review || !req.query.rating) {
         return res.json({ success: false });
     }
-    
-    const query = "DELETE FROM Review WHERE reviewId = ? AND userId = ? AND bookId = ? AND review = ? AND rating = ?";
-    const values = [req.query.reviewId, req.session.user.userId, req.query.bookId, req.query.review, req.query.rating];
-    let result = await dbQuery(query, values);
 
-    return res.json({success: result.affectedRows >= 1});
+    // To be able to delete a review a user must have an accessLevel of 1 
+    // or the userId of the review to be deleted must match their own
+    if (req.session.user.accessLevel == 1 || req.session.user.userId == req.query.userId) {
+        const query = "DELETE FROM Review WHERE reviewId = ? AND userId = ? AND bookId = ? AND review = ? AND rating = ?";
+        const values = [req.query.reviewId, req.query.userId, req.query.bookId, req.query.review, req.query.rating];
+        let result = await dbQuery(query, values);
+        return res.json({success: result.affectedRows >= 1});
+    } else {
+        return res.json({ success: false });
+    }
+});
+
+router.get('/top-five', async function(req, res) {
+    const query = "SELECT *, AVG(rating) AS avg_rating FROM Book NATURAL JOIN  Review GROUP BY name ORDER BY avg_rating DESC LIMIT 5;";
+    let result = await dbQuery(query, []);
+    return res.json({res: result});
 });
 
 
