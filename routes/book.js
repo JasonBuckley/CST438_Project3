@@ -129,8 +129,8 @@ router.get("/", async function (req, res, next) {
  * Adds a book, and its genres given a valid isbn number.
  */
 router.post("/add", async function (req, res, next) {
-    if (!req.body.isbn) {
-        res.json({ success: false });
+    if (!req.body.isbn || !req.session.user) {
+        return res.json({ success: false });
     }
 
     const url = new URL("https://openlibrary.org/api/books?bibkeys=ISBN:" + req.body.isbn + "&jscmd=data&format=json");
@@ -171,7 +171,7 @@ router.post("/add", async function (req, res, next) {
  * This route updates a book's information.
  */
 router.put("/update", async function (req, res, next) {
-    if (!req.body || !req.body.bookId) {
+    if (!req.body || !req.body.bookId || !req.session.user || req.session.user.accessLevel != 1) {
         return res.json({ success: false });
     }
 
@@ -188,7 +188,7 @@ router.put("/update", async function (req, res, next) {
  * Adds a genre to the db.
  */
 router.post("/genre/add", async function (req, res, next) {
-    if (!req.body.genre) {
+    if (!req.body.genre || !req.session.user || req.session.user.accessLevel != 1) {
         return res.json({ success: false });
     }
 
@@ -214,7 +214,7 @@ router.post("/genre/add", async function (req, res, next) {
  * Removes a genre from the db.
  */
 router.post("/genre/remove", async function (req, res, next) {
-    if (!req.body.id) {
+    if (!req.body.id || !req.session.user || req.session.user.accessLevel != 1) {
         return res.json({ success: false });
     }
 
@@ -251,7 +251,7 @@ function addBook(data) {
         let coverImg = data.cover ? data.cover.medium : "None";
         let isbn13 = data.identifiers.isbn_13 ? data.identifiers.isbn_13[0] : "";
         let isbn10 = data.identifiers.isbn_10 ? data.identifiers.isbn_10[0] : "";
-        let publisher = data.publishers[0] ? data.publishers[0].name : "Unknown";
+        let publisher = data.publishers && data.publishers[0] ? data.publishers[0].name : "Unknown";
         let subjects = data.subjects;
 
         const query = 'INSERT INTO Book VALUES(null, ?, ?, ?, ?, ?, ?);';
