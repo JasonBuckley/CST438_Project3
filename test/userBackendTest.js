@@ -1,5 +1,5 @@
 const assert = require('assert');
-const http = require("http");
+const request = require("./Util/request").request;
 const app = require('../app');
 
 // @TODO create test db and change hard coded localhost to test db.
@@ -145,46 +145,3 @@ describe('User Backend Tests:', function () {
         });
     });
 });
-
-
-function request(options, body, needHeader) {
-    return new Promise((resolve, reject) => {
-        let req = http.request(options, (res) => {
-            let body = "";
-
-            res.on('data', (chunk) => {
-                body += chunk;
-            });
-
-            res.on('end', () => {
-                //console.log(res.headers);
-                if (res.statusCode != "200" && (body && res.statusCode != 302)) {
-                    reject("Call to api end point has failed with response code " + res.statusCode);
-                } else {
-                    try {
-                        let data = JSON.parse(body);
-
-                        if (needHeader) {
-                            resolve({ data: data, headers: res.headers['set-cookie'] });
-                        } else {
-                            resolve(data);
-                        }
-                    } catch (e) {
-                        reject('Error parsing JSON!');
-                    }
-
-                }
-            });
-
-            res.on('error', (err) => {
-                reject(err);
-            });
-        });
-
-        if (body) {
-            req.write(body);
-        }
-
-        req.end();
-    });
-}

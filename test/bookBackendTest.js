@@ -1,5 +1,6 @@
 const assert = require('assert');
-const http = require("http");
+const request = require("./Util/request").request;
+const crypt = require("../routes/Util/crypt");
 const mysql = require('mysql');
 const app = require('../app');
 
@@ -7,23 +8,69 @@ const app = require('../app');
 
 describe('Book Backend Tests:', function () {
     let server;
-    this.beforeAll(() => {
-        server = app.listen(3000, async function () { });
+    let userSession;
+    // gets the config settings for the db
+    const sqlConfig = {
+        user: process.env.SQL_USERNAME,
+        password: process.env.SQL_PASSWORD,
+        host: process.env.SQL_HOST,
+        port: process.env.SQL_PORT,
+        database: process.env.SQL_DATABASE
+    };
+
+    // creates a pool to handle query requests.
+    const pool = mysql.createPool(sqlConfig);
+
+    this.beforeAll(async () => {
+        server = await app.listen(3000, async function () { });
+
+        let data = JSON.stringify({ username: "bookTestUser", password: "Password1*", email: "email1@email.com" });
+
+        let options = {
+            hostname: 'localhost',
+            port: 3000,
+            path: '/user/add',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(data, 'utf-8')
+            }
+        };
+
+        await request(options, data, false);
+
+        await new Promise(async (resolve, reject) => {
+            const key = crypt.getKeyFromPassword(process.env.USER_ENCRYPT_PASSWORD, Buffer.from(process.env.USER_ENCRYPT_SALT));
+            const query = 'UPDATE User SET accessLevel = 1 WHERE username = ? AND password = ?;';
+
+            let username = await crypt.encrypt('bookTestUser', key);
+            let password = await crypt.encrypt('Password1*', key);
+
+            const values = [username, password];
+
+            pool.query(query, values, (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results);
+                }
+            })
+        }).catch((err) => {
+            console.log(err);
+        });
+
+        let optionsLogin = {
+            hostname: 'localhost',
+            port: 3000,
+            path: '/user/login?username=bookTestUser&password=Password1*',
+            method: 'GET',
+        };
+
+        userSession = await request(optionsLogin, null, true);
     });
 
     // cleans up db and closes server.
     this.afterAll(async () => {
-        // gets the config settings for the db
-        const sqlConfig = {
-            user: process.env.SQL_USERNAME,
-            password: process.env.SQL_PASSWORD,
-            host: process.env.SQL_HOST,
-            port: process.env.SQL_PORT,
-            database: process.env.SQL_DATABASE
-        };
-
-        // creates a pool to handle query requests.
-        const pool = mysql.createPool(sqlConfig);
         const query = 'DELETE FROM Book WHERE isbn13 = ?';
         const values = ['9780765378484'];
 
@@ -39,6 +86,25 @@ describe('Book Backend Tests:', function () {
             console.log(err);
         });
 
+        let data = JSON.stringify({ password: "Password1*" });
+        let options = {
+            hostname: 'localhost',
+            port: 3000,
+            path: '/user/remove',
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(data, 'utf-8'),
+                'cookie': userSession.headers[0]
+            }
+        };
+
+        await request(options, data).catch((err) => {
+            console.log(err);
+            return -1;
+        });
+
+        delete pool;
         server.close();
     });
 
@@ -53,7 +119,8 @@ describe('Book Backend Tests:', function () {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(data, 'utf-8')
+                    'Content-Length': Buffer.byteLength(data, 'utf-8'),
+                    'cookie': userSession.headers[0]
                 }
             };
 
@@ -114,7 +181,8 @@ describe('Book Backend Tests:', function () {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(data, 'utf-8')
+                    'Content-Length': Buffer.byteLength(data, 'utf-8'),
+                    'cookie': userSession.headers[0]
                 }
             };
 
@@ -154,43 +222,3 @@ describe('Book Backend Tests:', function () {
         });
     });
 });
-
-function request(options, body, needHeader) {
-    return new Promise((resolve, reject) => {
-        let req = http.request(options, (res) => {
-            let body = "";
-
-            res.on('data', (chunk) => {
-                body += chunk;
-            });
-
-            res.on('end', () => {
-                if (res.statusCode != "200" && (body && res.statusCode != 302)) {
-                    reject("Call to api end point has failed with response code " + res.statusCode);
-                } else {
-                    try {
-                        let data = JSON.parse(body);
-                        if (needHeader) {
-                            resolve({ data: data, headers: res.headers['set-cookie'] });
-                        } else {
-                            resolve(data);
-                        }
-                    } catch (e) {
-                        reject('Error parsing JSON!');
-                    }
-
-                }
-            });
-
-            res.on('error', (err) => {
-                reject(err);
-            });
-        });
-
-        if (body) {
-            req.write(body);
-        }
-
-        req.end();
-    });
-}
