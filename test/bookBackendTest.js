@@ -4,8 +4,6 @@ const crypt = require("../routes/Util/crypt");
 const mysql = require('mysql');
 const app = require('../app');
 
-// @TODO create test db and change hard coded localhost to test db.
-
 describe('Book Backend Tests:', function () {
     let server;
     let userSession;
@@ -71,21 +69,6 @@ describe('Book Backend Tests:', function () {
 
     // cleans up db and closes server.
     this.afterAll(async () => {
-        const query = 'DELETE FROM Book WHERE isbn13 = ?';
-        const values = ['9780765378484'];
-
-        await new Promise((resolve, reject) => {
-            pool.query(query, values, (err, results) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(results);
-                }
-            })
-        }).catch((err) => {
-            console.log(err);
-        });
-
         let data = JSON.stringify({ password: "Password1*" });
         let options = {
             hostname: 'localhost',
@@ -111,7 +94,6 @@ describe('Book Backend Tests:', function () {
     describe('#addRoute', function () {
         it('Tests adding a Book?', async function () {
             let data = JSON.stringify({ isbn: "9780765378484" });
-
             let options = {
                 hostname: 'localhost',
                 port: 3000,
@@ -124,6 +106,20 @@ describe('Book Backend Tests:', function () {
                 }
             };
 
+            let data2 = JSON.stringify({ isbn: "0517226952" });
+            let options2 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book/add',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data2, 'utf-8'),
+                    'cookie': userSession.headers[0]
+                }
+            };
+
+
             let resp = await request(options, data).catch((err) => {
                 console.log(err);
                 return -1;
@@ -134,8 +130,13 @@ describe('Book Backend Tests:', function () {
                 console.log(err);
                 return -1;
             });
-
             assert.equal(false, resp2.success);
+
+            let resp3 = await request(options2, data2).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+            assert.equal(true, resp3.success);
         });
     });
 
@@ -158,6 +159,94 @@ describe('Book Backend Tests:', function () {
             assert.equal(3, resp.genres.length);
         });
     });
+
+    describe('#FilterTest', function () {
+        it('Tests getting a book by search query', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?search=HitchHiker%27s%20guide',
+                method: 'GET',
+            }
+
+            let resp = await request(options, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            assert.equal('0517226952', resp[0].ISBN10);
+        });
+
+        it('Tests getting a book by category', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?categories=fiction',
+                method: 'GET',
+            }
+
+            let resp = await request(options, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            assert.equal(2, resp.length);
+            assert.equal(true, [resp[0].ISBN10, resp[1].ISBN10].includes('0517226952'));
+
+            let options2 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?categories=humour',
+                method: 'GET',
+            }
+
+            let resp2 = await request(options2, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            assert.equal('0517226952', resp2[0].ISBN10);
+        });
+
+        it('Tests getting a book by search key and category', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?search=ender&categories=science%2Chumour',
+                method: 'GET',
+            }
+
+            let resp = await request(options, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+
+            console.log(resp);
+            let title = resp && resp.length ? resp[0].ISBN13 : '';
+            assert.equal('9780765378484', title);
+        });
+
+
+        it('Tests getting a book by ISBN', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?isbn=9780765378484',
+                method: 'GET',
+            }
+
+            let resp = await request(options, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            console.log(resp);
+            assert.equal('Ender\'s Game', resp[0].name);
+        });
+    });
+
+
 
     describe('#updateRoute', function () {
         it('Tests update a Book?', async function () {
@@ -219,6 +308,74 @@ describe('Book Backend Tests:', function () {
             }
 
             assert.equal(true, same);
+        });
+    });
+
+
+    describe('#deleteRoute', function () {
+        it('Tests deleting a Book?', async function () {
+            let options1 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?isbn=0517226952',
+                method: 'get',
+            }
+
+            let options2 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?isbn=9780765378484',
+                method: 'get',
+            }
+
+            let resp1 = await request(options1, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            let resp2 = await request(options2, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            let data1 = JSON.stringify({ bookId: resp1[0].bookId });
+            let options3 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book/remove',
+                method: 'delete',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data1, 'utf-8'),
+                    'cookie': userSession.headers[0]
+                }
+            }
+
+            let data2 = JSON.stringify({ bookId: resp2[0].bookId });
+            let options4 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book/remove',
+                method: 'delete',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data2, 'utf-8'),
+                    'cookie': userSession.headers[0]
+                }
+            }
+
+            let resp3 = await request(options3, data1, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            let resp4 = await request(options4, data2, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            assert.equal(true, resp3.success);
+            assert.equal(true, resp4.success);
         });
     });
 });
