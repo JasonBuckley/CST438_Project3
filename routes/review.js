@@ -19,30 +19,33 @@ const pool = mysql.createPool(sqlConfig);
  * Adds a review given a userId and bookId
  */
 router.post('/add', async function(req, res) {
-    if (!req.session.user) {
-        return res.redirect("/user/login");
-    } else if (!req.query.isbn && !req.query.review && !req.query.rating) {
+    // if (!req.session.user) {
+    //     return res.redirect("/user/login");
+    // } else
+    // console.log("debug");
+    if (!req.body.isbn && !req.body.review && !req.body.rating) {
         return res.json({ success: false });
     }
 
     let query = 'SELECT bookId FROM Book WHERE ISBN10 = ? OR ISBN13 = ? LIMIT 1;';
-    let values = [req.query.isbn, req.query.isbn];
-
+    let values = [req.body.isbn, req.body.isbn];
     let bookId = await dbQuery(query, values);
-
+    
+    console.log("test", bookId);
     if (!bookId[0]) {
         return res.json({ success: false });
     }
 
     let data = {
-        userId: req.session.user.userId,
+        //req.session.user.userId
+        userId: 1,
         bookId: bookId[0].bookId,
-        review: req.query.review,
-        rating: req.query.rating
+        review: req.body.review,
+        rating: req.body.rating
     };
 
     query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, ?);';
-    values = [data.userId, data.bookId, data.review, data.rating];
+    values = [1, data.bookId, data.review, data.rating];
 
     let result = await dbQuery(query, values).catch((err) => {
         console.log(err);

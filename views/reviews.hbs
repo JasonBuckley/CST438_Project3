@@ -1,4 +1,5 @@
 {{>nav}}
+
 <style>
     .review{
         /*background-color:maroon;*/
@@ -42,11 +43,54 @@
         color: black;
         background-color:transparent;
     }
+    .reviewContainer
+    {
+        justify-content:center;
+        border:black;
+        outline:12px;
+        /*flex:;*/
+    }
     /*.btn{*/
     /*    display:none;*/
     /*}*/
 </style>
-<script src="./javascripts/reviews.js"></script>
+<script>
+$(document).ready(function () {
+    $('#reviewSubmit').on("click", function(){
+        $.ajax({
+            type        : 'POST',
+            url         : '/review/add',
+            dataType    : 'json',
+            data: { isbn:$('#isbn').val(), review:$('#review').val(), rating:$('#rating').val() },
+            success: function(data){
+                alert('successful');
+                console.log(data); 
+            }
+            
+      });//end ajax call
+      
+    
+    });//end submit button 
+    
+    $.ajax({
+       type:"GET",
+       url:'/review/get',
+       dataType: 'json',
+       data: { bookId:$('#bookId').val() },
+       success: function(data){
+           alert("yes"); 
+           console.log(data.reviews.length); 
+           for(var x=0; x < data.reviews.length; x++){
+               console.log();
+               console.log(data.reviews[x]);
+               $('#reviewContainer').append(`<p>User:${data.reviews[x].userId}<br>Comment: ${data.reviews[x].review}</p><br>`);
+           }
+       }
+    });    
+
+});//end DOM
+</script>
+
 <h1>{{title}}</h1>
 <p>Review Page for: {{title}}</p>
 
@@ -63,23 +107,32 @@
                 <p>by {{book.author}}</p>
                 <p class="card-text"><b>ISBN:{{ book.ISBN}}</b></p>
                 </div>
+                
             </div>
                 {{!--<% }) %>--}}
         </div>  
     </form>
 <div class="center" id="review section" name="reviews">
-    <form name="commentBox" action="/reviews/add" method="post">
+    {{!--<form name="commentBox" action="/review/add" method="post">--}}
         <div>
-            <textarea name="reviewText">Comments</textarea>
+            <textarea id="review" name="review">Comments</textarea>
         </div>
         <div class="btn">
             <input id="reviewSubmit" type="submit" value="Submit" name="reviewSubmit">
+            <input id="isbn" value="{{book.ISBN13}}" name="isbn">
+            <input id="rating" value="0" name="rating">
             <button id="reviewEdit">Edit</button>
             <button id="reviewDelete">Delete</button>
+            <input id="bookId" value="{{book.bookId}}" >
+            
         </div>
-    </form>
+    {{!--</form>--}}
 </div>
+
+<div id="reviewContainer" class="center">
     
+    
+</div>
 <br></br>
     
     <div>
@@ -91,3 +144,18 @@
     
         
 </body>
+
+
+
+
+  {{!--   $.ajax({--}}
+  {{!--      type        : 'GET',--}}
+  {{!--      url         : '/review/add',--}}
+  {{!--      dataType    : 'json',--}}
+  {{!--      success: function(data){--}}
+  {{!--          alert('successful');--}}
+            
+            
+  {{!--      }--}}
+  {{!--});//end ajax call--}}
+    
