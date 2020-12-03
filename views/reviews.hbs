@@ -81,10 +81,16 @@
         </div>
         <div class="btn">
             <input id="reviewSubmit" type="submit" value="Submit" name="reviewSubmit">
-            <button id="reviewEdit">Edit</button>
-            <button id="reviewDelete">Delete</button>
+            
         </div>
     </form>
+    <form name="reviewEdit" action="/review/update">
+        <button name="editbutton" id="reviewEdit">Edit</button>
+    </form>
+    <form name="reviewDelete" action="review/delete">
+        <button name="deletebutton" id="reviewDelete">Delete</button>
+    </form>
+            
 </div>
     
 <br></br>
