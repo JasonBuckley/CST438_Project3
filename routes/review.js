@@ -61,7 +61,7 @@ router.post('/add', async function(req, res) {
  */
 router.get('/get', async function(req, res) {
     let query = "SELECT * FROM Review WHERE ";
-
+    console.log(query);
     if (req.query.reviewId) {
         query += "reviewId = ?";
         let reviews = await dbQuery(query, req.query.reviewId);
@@ -77,6 +77,7 @@ router.get('/get', async function(req, res) {
     } else {
         return res.json({success: false, msg: "Invalid parameters"});
     }
+    
 });
 
 /**
