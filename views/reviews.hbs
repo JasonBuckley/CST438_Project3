@@ -1,12 +1,14 @@
 {{>nav}}
 
 <style>
+/*global$*/
     .review{
         background-color:maroon;
         /*background-image: url("/public/images/202978.jpg");*/
     }
     .center{
     display:flex; 
+    padding:8px;
     align-items:center;
     margin-left: auto;
     margin-right: auto;
@@ -40,7 +42,7 @@
         border-radius: 5px;
         text-transform:uppercase; 
         font-weight:bold;
-        cursor:pointer;
+        /*cursor:pointer;*/
     }
     input[type="submit"]{
         color: red;
@@ -59,7 +61,7 @@
         border-style:groove;
         border-width:8px;
         /*flex:;*/
-    }
+    } 
     .miniContainer{
         margin: auto;
         background-color:navy;
@@ -68,9 +70,16 @@
         padding: 2px;
         border-style:dotted;
         border-width:3px;
+        justify-content:center;
+    }
+    .cbox{
+        margin:auto;
+        background:rgba(50, 96, 97, 0.4);
+        /*opacity: 0.2;*/
     }
     .miniContainer2{
         margin: auto;
+        justify-content:center;
         background-color:#374c9e;
         /*width: 50%;*/
         border: 5px solid #3ce02d;
@@ -79,11 +88,15 @@
         /*border-width:3px*/
         border-radius: 5px;
     }
+    .hideMe{
+        display:none;
+    }
     /*.btn{*/
     /*    display:none;*/
     /*}*/
 </style>
 <script>
+/*global $*/
 $(document).ready(function () {
     $('#reviewSubmit').on("click", function(){
         $.ajax({
@@ -92,7 +105,7 @@ $(document).ready(function () {
             dataType    : 'json',
             data: { isbn:$('#isbn').val(), review:$('#review').val(), rating:$('#rating').val() },
             success: function(data){
-                alert('successful');
+                alert('Submit successful, thank you for your comment!');
                 console.log(data); 
             }
             
@@ -107,10 +120,9 @@ $(document).ready(function () {
        dataType: 'json',
        data: { bookId:$('#bookId').val() },
        success: function(data){
-           alert("yes"); 
+           alert("Welcome to the review page, loading all reviews!"); 
            console.log(data.reviews.length); 
            for(var x=0; x < data.reviews.length; x++){
-               console.log();
                console.log(data.reviews[x]);
                $('#reviewContainer').append(`<br><p class="reviewContainer"><span class="miniContainer2">User ${data.reviews[x].userId} said:</span></br><br> <span class="miniContainer">${data.reviews[x].review}<span></p><br>`);
            }
@@ -120,8 +132,7 @@ $(document).ready(function () {
 });//end DOM
 </script>
 
-<h1>{{title}}</h1>
-<p>Review Page for: {{title}}</p>
+<h1 class="miniContainer">Review Page: {{book.name}}</h1>
 
 <body>
     <form class="center" name="bookdisplay" action='/' method='GET'>
@@ -134,7 +145,7 @@ $(document).ready(function () {
                 <div class="card-body">
                 <h5 class="card-title">{{book.name}}</h5>
                 <p>by {{book.author}}</p>
-                <p class="card-text"><b>ISBN:{{ book.ISBN}}</b></p>
+                <p class="card-text"><b>ISBN:{{ book.ISBN10}}{{book.ISBN13}}</b></p>
                 </div>
                 
             </div>
@@ -142,22 +153,42 @@ $(document).ready(function () {
         </div>  
     </form>
 <div class="center" id="review section" name="reviews">
+                Rating:<select id=ratingDropDown>
+                <option id="rating0" value="0">0</option>
+                <option id="rating1" value="1">1</option>
+                <option id="rating2" value="2">2</option>
+                <option id="rating3" value="3">3</option>
+                <option id="rating4" value="4">4</option>
+                <option id="rating5" value="5">5</option>
+                <option id="rating6" value="6">6</option>
+                <option id="rating7" value="7">7</option>
+                <option id="rating8" value="8">8</option>
+                <option id="rating9" value="9">9</option>
+                <option id="rating10" value="10">10</option>
+                </select><br>
     {{!--<form name="commentBox" action="/review/add" method="post">--}}
         <div>
-            <textarea id="review" name="review">Comments</textarea>
+            <textarea class="cbox" id="review" name="review">Click here to comment!</textarea>
+
         </div>
         <div class="btn">
+
             <input id="reviewSubmit" type="submit" value="Submit" name="reviewSubmit">
-            <input id="isbn" value="{{book.ISBN13}}" name="isbn">
-            <input id="rating" value="0" name="rating">
-            <button id="reviewEdit">Edit</button>
-            <button id="reviewDelete">Delete</button>
-            <input id="bookId" value="{{book.bookId}}" >
             
+            <span class="hideMe">
+                <p class="center">Debug Box:</p>
+                Rating:  <input id="rating" value="0" name="rating">
+                BookID:  <input id="bookId" value="{{book.bookId}}" >
+                BookISBN:<input id="isbn" value="{{book.ISBN10}}{{book.ISBN13}}{{book.ISBN}}" name="isbn">
+            </span>
         </div>
     {{!--</form>--}}
-</div>
 
+</div>
+    <p class="center">
+            <button id="reviewEdit">Edit</button>
+            <button id="reviewDelete">Delete</button>
+    </p>
 <div id="reviewContainer" class="reviewContainer">
     <p>All Comments for <strong>{{book.name}}</strong>:</p>
     
