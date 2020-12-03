@@ -1,12 +1,8 @@
 $(document).ready(function () {
     $("#search-bar").focus();
 
-    $("#search-res").hide();
-
     $("#search-btn").on("click", function() {
         let input = $("#search-bar").val();
-
-        $("#search-res").hide();
 
         if (input === "") {
             alert("empty");
@@ -17,58 +13,101 @@ $(document).ready(function () {
         console.log("Searching for: ", title);
 
         searchByTitle(title).then((result) => {
-            if (result.numFound > 0 && result.docs.length > 0) {
-                $("#search-res").show();
-
-                let books = result.docs;
-                console.log(books);
-
-                let count = 0;
-
-                for (let i = 0; i < books.length; i++) {
-                    if (books[i].title && books[i].isbn.length != 0) {
-                        addToRow(books[i], i);
-                        count++;
-                        if (count == 4) {
-                            break;
-                        }
-                    }
-
-                }
+            console.log(result);
+            if (result.amount > 0 && result.books.length > 0) {
+                showBooks(result.books);
             }
         });
 
+    });
+
+    getTopFive().then((result) => {
+        console.log("Top 5: ", result);
+        showTopFive(result.res);
     });
 });
 
 function searchByTitle(title) {
     return $.ajax({
-        url: "https://openlibrary.org/search.json?title=" + title,
-        method: "GET",
+        type: "GET",
+        url: "/search?title=" + title,
         dataType: "json",
-        success: function (result, status) {
+        contentType: "application/json",
+        success: function(result, status) {
             return result;
         }
-    }); 
+    });
 }
 
-function addToRow(book, index) {
-    let title = book.title;
-    let isbn = book.isbn[0];
-    let img = `http://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
+function showBooks(books) {
+    // clear main
+    main.innerHTML = "";
 
-    $(`#book-img-${index+1}`).attr({"src": img, height: "300", width: "100%", isbn: isbn});
-    $(`#book-title-${index+1}`).html(`${title}`);
-    $(`#book-isbn-${index+1}`).html(`${isbn}`);
+    books.forEach((book) => {
+        const { author_name, isbn, title } = book;
+
+        const bookElement = document.createElement("div");
+        bookElement.classList.add("book");
+
+        // Should change to request, is status is 404 don't show
+        let img = `http://covers.openlibrary.org/b/isbn/${isbn[0]}-M.jpg?default=false`;
+        
+        bookElement.innerHTML = `
+        <img
+            src="${img}"
+            alt="${title}"
+        />
+        <div class="book-info" isbn=${isbn[0]}>
+            <h3><a href="/book/isbn/${isbn[0]}">${title}</a></h3>
+        </div>
+        `;
+
+        main.appendChild(bookElement);
+    });
 }
 
+function getTopFive() {
+    return $.ajax({
+        type: "GET",
+        url: "/review/top-five",
+        dataType: "json",
+        contentType: "application/json",
+        success: function(result, status) {
+            return result;
+        }
+    });
+}
 
-document.querySelectorAll("[id^='book-img-']")
-  .forEach(function(el) {
-    el.onclick = function() {
-      console.log(this.id)
-      let isbn = $(`#${this.id}`).attr("isbn");
-      console.log(isbn);
-      window.location.href = `/book/isbn/${isbn}`;
-    }
-  })
+function showTopFive(books) {
+    // clear main
+    main.innerHTML = "";
+
+    const headerElement = document.createElement("h2");
+    headerElement.classList.add("header");
+    headerElement.innerHTML = `Top 5 Rated Books, Chosen by Users Like You!`;
+    main.appendChild(headerElement);
+
+    books.forEach((book) => {
+        const { bookId, name, author, ISBN10, ISBN13, avg_rating, coverImg } = book;
+        console.log(bookId, name, author, ISBN10, ISBN13, avg_rating, coverImg);
+
+        let isbn = ISBN10 == null ? (ISBN13 == null ? "": ISBN13) : ISBN10;
+        console.log(!isbn);
+
+        const bookElement = document.createElement("div");
+        bookElement.classList.add("book");
+
+        bookElement.innerHTML = `
+        <img
+            src="${coverImg}"
+            alt="${name}"
+        />
+        <div class="book-info" isbn=${isbn}>
+            <h3><a href="/book/isbn/${isbn}">${name}</a></h3>
+            <span>${Math.trunc(avg_rating)}/10</span>
+        </div>
+        `;
+
+        main.appendChild(bookElement);
+    });
+}
