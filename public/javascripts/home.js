@@ -1,14 +1,10 @@
 $(document).ready(function () {
-    $("#search-bar").focus();
+    $("#input").focus();
 
-    $("#search-btn").on("click", function() {
-        let input = $("#search-bar").val();
+    $("#search-form").submit(function(event) {
+        event.preventDefault(); 
 
-        if (input === "") {
-            alert("empty");
-            return;
-        }
-        
+        let input = $("#input").val();
         let title = input.replace(/\s+/g,'+');
         console.log("Searching for: ", title);
 
@@ -18,8 +14,8 @@ $(document).ready(function () {
                 showBooks(result.books);
             }
         });
-
     });
+    
 
     getTopFive().then((result) => {
         console.log("Top 5: ", result);
