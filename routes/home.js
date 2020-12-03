@@ -4,7 +4,11 @@ const router = express.Router();
 const search = require("../routes/Util/search");
 
 router.get('/', function(req, res, next) {
-    res.render('home');
+    if (req.session.user) {
+        res.render("home", { username: req.session.username });
+    } else {
+        res.render("home");
+    }
 });
 
 /**
