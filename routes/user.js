@@ -89,6 +89,10 @@ router.post('/add', async function (req, res, next) {
 
     return res.json({ insertId: insertId });
 });
+router.get('/register', function (req, res){
+    res.render('register');
+});
+
 
 /**
  * Updates a User's account info given a valid password, username, and email.

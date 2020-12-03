@@ -54,7 +54,7 @@ router.get("/page", async function (req, res, next) {
     if (result === -1) {
         return res.redirect('/');
     }
-  
+
     // Gets book's genres
     let genres = await new Promise((resolve, reject) => {
         const query = 'SELECT genre FROM Book_Genres NATURAL JOIN Genre WHERE bookId = ?';
@@ -85,7 +85,7 @@ router.get("/page", async function (req, res, next) {
  * Gets 25 or fewer books from the database.
  */
 router.get("/", async function (req, res, next) {
-    if (req.query.search) {
+    if (req.query.search || req.query.categories || req.query.isbn) {
         next();
         return;
     }
@@ -106,12 +106,29 @@ router.get("/", async function (req, res, next) {
 });
 
 /**
- * Gets all books that contain the search key.
+ * Gets all books that meet the filtering constraints.  A book can be filtered by title, and/or categories (genres)
  */
 router.get("/", async function (req, res, next) {
     let result = await new Promise((resolve, reject) => {
-        const query = `SELECT * FROM Book WHERE name LIKE ${pool.escape('%' + req.query.search + '%')} LIMIT 25;`;
-        const values = [req.query.search];
+        let query;
+        let values = [];
+
+        if (req.query.isbn) {
+            query = 'SELECT * FROM Book WHERE ISBN10 = ? OR ISBN13 = ?;';
+            values = [req.query.isbn, req.query.isbn];
+        } else if (req.query.search && !req.query.categories) {
+            query = `SELECT * FROM Book WHERE name LIKE ${pool.escape('%' + req.query.search + '%')} LIMIT 25;`;
+        } else if (!req.query.search && req.query.categories) {
+            values = req.query.categories.split(",");
+            let tokens = new Array(values.length).fill('?').join(',');
+            query = `SELECT * FROM Book WHERE bookId IN(SELECT DISTINCT bookId FROM Book_Genres NATURAL JOIN Genre WHERE genre IN(${tokens})) LIMIT 25;`;
+        } else {
+            values = req.query.categories.split(",");
+            let tokens = new Array(values.length).fill('?').join(',');
+            query = `SELECT * FROM Book WHERE `
+                + `bookId IN (SELECT DISTINCT bookId FROM Book_Genres NATURAL JOIN Genre WHERE genre IN (${tokens})) `
+                + `AND name Like ${pool.escape('%' + req.query.search + '%')} LIMIT 25;`
+        }
 
         pool.query(query, values, (err, results) => {
             if (err) {
@@ -120,6 +137,9 @@ router.get("/", async function (req, res, next) {
                 resolve(results);
             }
         });
+    }).catch((err) => {
+        console.log(err);
+        return [];
     });
 
     return res.json(result);
@@ -129,8 +149,8 @@ router.get("/", async function (req, res, next) {
  * Adds a book, and its genres given a valid isbn number.
  */
 router.post("/add", async function (req, res, next) {
-    if (!req.body.isbn) {
-        res.json({ success: false });
+    if (!req.body.isbn || !req.session.user) {
+        return res.json({ success: false });
     }
 
     const url = new URL("https://openlibrary.org/api/books?bibkeys=ISBN:" + req.body.isbn + "&jscmd=data&format=json");
@@ -141,6 +161,7 @@ router.post("/add", async function (req, res, next) {
             return false;
         });
 
+    // adds a book the database.
     let result;
     if (isValid) {
         result = await request(url)
@@ -155,6 +176,7 @@ router.post("/add", async function (req, res, next) {
 
     res.json({ success: result.insertId > -1 });
 
+    // adds the books genres to the database.
     if (result.insertId > -1) {
         await getGenresFromSubjects(result.subjects)
             .then((genres) => addGenresToBook(genres, result.insertId))
@@ -171,7 +193,7 @@ router.post("/add", async function (req, res, next) {
  * This route updates a book's information.
  */
 router.put("/update", async function (req, res, next) {
-    if (!req.body || !req.body.bookId) {
+    if (!req.body || !req.body.bookId || !req.session.user || req.session.user.accessLevel != 1) {
         return res.json({ success: false });
     }
 
@@ -185,10 +207,62 @@ router.put("/update", async function (req, res, next) {
 });
 
 /**
+ * Removes a book from the database.  Privilege is limited to admin use.
+ */
+router.delete("/remove", async function (req, res, next) {
+    if (!req.session.user && req.session.user.accessLevel != 1 && !req.body.bookId) {
+        return res.json({ success: false });
+    }
+    
+    const query = "DELETE FROM Book WHERE bookId = ?;";
+    const values = [req.body.bookId];
+
+    let affectedRows = await new Promise((resolve, reject) => {
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results.affectedRows);
+            }
+        });
+    }).catch((err) => {
+        return -1;
+    });
+
+    res.json({ success: affectedRows > 0 });
+});
+
+/**
+ * Adds a new genre to a specific book.
+ */
+router.put("/add/genre", async function (req, res, next) {
+    if (!req.session.user && req.session.user.accessLevel != 1 && !req.body.bookId && !req.body.genre) {
+        return res.json({ success: false });
+    }
+
+    const query = "INSERT INTO Book_Generes VALUES((SELECT genreId FROM Genre WHERE genre Like '?' LIMIT 1), ?);";
+    const values = [req.body.genre, req.body.bookId];
+
+    let insertId = await new Promise((resolve, reject) => {
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results.insertId);
+            }
+        });
+    }).catch((err) => {
+        return -1;
+    });
+
+    res.json({ success: insertId > -1 });
+});
+
+/**
  * Adds a genre to the db.
  */
 router.post("/genre/add", async function (req, res, next) {
-    if (!req.body.genre) {
+    if (!req.body.genre || !req.session.user || req.session.user.accessLevel != 1) {
         return res.json({ success: false });
     }
 
@@ -214,7 +288,7 @@ router.post("/genre/add", async function (req, res, next) {
  * Removes a genre from the db.
  */
 router.post("/genre/remove", async function (req, res, next) {
-    if (!req.body.id) {
+    if (!req.body.id || !req.session.user || req.session.user.accessLevel != 1) {
         return res.json({ success: false });
     }
 
@@ -251,7 +325,7 @@ function addBook(data) {
         let coverImg = data.cover ? data.cover.medium : "None";
         let isbn13 = data.identifiers.isbn_13 ? data.identifiers.isbn_13[0] : "";
         let isbn10 = data.identifiers.isbn_10 ? data.identifiers.isbn_10[0] : "";
-        let publisher = data.publishers[0] ? data.publishers[0].name : "Unknown";
+        let publisher = data.publishers && data.publishers[0] ? data.publishers[0].name : "Unknown";
         let subjects = data.subjects;
 
         const query = 'INSERT INTO Book VALUES(null, ?, ?, ?, ?, ?, ?);';
