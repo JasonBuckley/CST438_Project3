@@ -1,13 +1,10 @@
 /* styles for footer */
 
 .footer {
-  margin-top: 100vh;
   background: black;
   color: white;
   margin-bottom: 0px;
-
-  /* position: absolute; */
-  /* bottom: 0; */
+  position: absolute;
   width: 100%;
 }
 

@@ -73,6 +73,15 @@
         .book-author img {
             border-radius: 50%;
         }
+
+        /* styles for review container */
+        .reviews {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+            display: flex;
+            border: 1px solid #e1e8ee;
+        }
     </style>
 </head>
 
@@ -102,6 +111,23 @@
             </div>
         </div>
     </div>
+
+    <div class="reviews container-fluid flex-row-reverse">
+
+        <div class="row w-100">
+            <table style="max-height:90%" id="shoppingCart" class="table table-condensed table-responsive">
+                <thead>
+                    <tr>
+                        <th style="width:15%">User ID</th>
+                        <th style="width:15%">Review ID</th>
+                        <th style="width:55%">Review</th>
+                        <th style="width:15%">Rating</th>
+                    </tr>
+                </thead>
+                <tbody id="reviewBox">
+                </tbody>
+            </table>
+        </div>
 </body>
 
 <script>
@@ -123,9 +149,20 @@
             let author_id = result.authors[0]["key"].split("/")[2];
             console.log(author_id);
             let author_img = `http://covers.openlibrary.org/a/olid/${author_id}-S.jpg`;
-
             $("#author").attr({ "src": author_img });
             console.log(author_img);
+        });
+
+        getBook(isbn).then((result) => {
+            console.log(result);
+            const { bookId } = result[0];
+            console.log(bookId);
+            getReviews(bookId).then((result) => {
+                console.log(result.reviews);
+                result.reviews.forEach((review) => {
+                    createFrameDiv(review);
+                });
+            });
         });
     });
 
@@ -138,6 +175,49 @@
                 return result;
             }
         });
+    }
+
+    function getBook(isbn) {
+        return $.ajax({
+            url: `/book?isbn=${isbn}`,
+            method: "GET",
+            dataType: "json",
+            success: function (result, status) {
+                return result;
+            }
+        });
+    }
+
+    function getReviews(bookId) {
+        return $.ajax({
+            url: `/review/get?bookId=${bookId}`,
+            method: "GET",
+            dataType: "json",
+            success: function (result, status) {
+                return result;
+            }
+        });
+    }
+
+    function createFrameDiv(review) {
+        $("#reviewBox").append(
+            `
+            <tr>
+                <td>
+                    <p>${review.userId}</p>
+                </td>
+                <td>
+                    <p>${review.reviewId}</p>
+                </td>
+                <td>
+                    <p>${review.review}</p>
+                </td>
+                <td>
+                    <p>${review.rating}</p>
+                </td>
+            </tr>
+            `
+        );
     }
 
 </script>

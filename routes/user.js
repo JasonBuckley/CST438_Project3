@@ -2,8 +2,8 @@ var express = require('express');
 var router = express.Router();
 const mysql = require("mysql");
 const crypt = require("../routes/Util/crypt");
-const { route } = require('./home');
 const { Buffer } = require("buffer");
+const { access } = require('fs');
 
 const KEY = crypt.getKeyFromPassword(process.env.USER_ENCRYPT_PASSWORD, Buffer.from(process.env.USER_ENCRYPT_SALT));
 
@@ -89,6 +89,10 @@ router.post('/add', async function (req, res, next) {
 
     return res.json({ insertId: insertId });
 });
+router.get('/register', function (req, res) {
+    res.render('register');
+});
+
 
 /**
  * Updates a User's account info given a valid password, username, and email.
@@ -261,9 +265,9 @@ async function updateUser(username, password, email, user) {
  * @param {Buffer} password
  * @returns Promise
  */
-async function deleteUser(userId, password) {
-    const query = "DELETE FROM User WHERE userId = ? AND password = ?";
-    const values = [userId, password];
+async function deleteUser(userId, password, accessLevel = 0) {
+    const query = accessLevel == 0 ? "DELETE FROM User WHERE userId = ? AND password = ?" : "DELETE FROM User WHERE userId = ?";
+    const values = accessLevel == 0 ? [userId, password] : [userId];
 
     return new Promise((resolve, reject) => {
         pool.query(query, values, (err, results) => {
@@ -271,11 +275,68 @@ async function deleteUser(userId, password) {
                 req.err = err;
                 reject(err);
             } else {
-                resolve(results.insertId);
+                resolve(results.affectedRows);
             }
         });
     });
 }
+
+//=========================== Admin functions ================================//
+
+/**
+ * Get a specific user's userId by searching there username.
+ */
+router.get('/get', async function (req, res, next) {
+    if (req.session.user.accessLevel != 1) {
+        return res.json({ success: false, msg: "access denied" });
+    } else if (!req.query.username) {
+        return res.json({ success: false, msg: "Invalid parameters" });
+    }
+
+    let username = await crypt.encrypt(req.query.username, KEY);
+
+    let userId = await new Promise((resolve, reject) => {
+        const query = "SELECT userId FROM User WHERE username = ? LIMIT 1;";
+        const values = [username];
+
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                if (Array.isArray(results) && results.length) {
+                    resolve(results[0].userId);
+                } else {
+                    resolve(-1);
+                }   
+            }
+        });
+    }).catch((err) => {
+        return -1;
+    });
+
+    return res.json({ userId: userId });
+});
+
+/**
+ * Allows an admin to remove a user's account.
+ */
+router.delete('/ban', async function (req, res, next) {
+    if (req.session.user.accessLevel != 1) {
+        return res.json({ success: false, msg: "access denied" });
+    } else if (!req.body.userId) {
+        return res.json({ success: false, msg: "Invalid parameters" });
+    }
+
+    let affectedRows = await deleteUser(req.body.userId, null, req.session.user.accessLevel)
+        .catch((err) => {
+            console.log(err);
+        });
+
+    return res.json({ success: affectedRows > -1 });
+});
+
+
+//============================== End of admin functions =================================//
 
 /**
  * Gets user information 
@@ -291,5 +352,6 @@ router.get('/', async function (req, res, next) {
 
     return res.json({ username: username, password: password, email: email });
 });
+
 
 module.exports = router;
