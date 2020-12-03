@@ -52,30 +52,6 @@ function searchByTitle(title) {
     }); 
 }
 
-//http://covers.openlibrary.org/b/id/9646548-S.jpg
-//http://covers.openlibrary.org/b/isbn/0385472579-S.jpg
-
-// function addToRow(book) {
-//     let title = book.title;
-//     let isbn = book.isbn[0];
-//     let img = `http://covers.openlibrary.org/b/isbn/${isbn}-S.jpg`
-
-//     $(".book-row").append(
-//         `
-//         <div class="col-md-3">
-//             <div class="product-top">
-//                 <img src="${img}" alt="Picture of ${book.title}">
-//             </div>
-//             <div class="product-bottom text-center">
-//                 <h3>${title}</h3>
-//                 <h5>ISBN: ${isbn}</h5>
-//             </div>
-        
-//         </div>
-//         `
-//     );
-// }
-
 function addToRow(book, index) {
     let title = book.title;
     let isbn = book.isbn[0];

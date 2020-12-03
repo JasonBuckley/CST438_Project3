@@ -1,33 +1,51 @@
 const assert = require('assert');
-const http = require("http");
+const request = require("./Util/request").request;
+const crypt = require("../routes/Util/crypt");
 const mysql = require('mysql');
 const app = require('../app');
 
-// @TODO create test db and change hard coded localhost to test db.
-
 describe('Book Backend Tests:', function () {
     let server;
-    this.beforeAll(() => {
-        server = app.listen(3000, async function () { });
-    });
+    let userSession;
+    // gets the config settings for the db
+    const sqlConfig = {
+        user: process.env.SQL_USERNAME,
+        password: process.env.SQL_PASSWORD,
+        host: process.env.SQL_HOST,
+        port: process.env.SQL_PORT,
+        database: process.env.SQL_DATABASE
+    };
 
-    // cleans up db and closes server.
-    this.afterAll(async () => {
-        // gets the config settings for the db
-        const sqlConfig = {
-            user: process.env.SQL_USERNAME,
-            password: process.env.SQL_PASSWORD,
-            host: process.env.SQL_HOST,
-            port: process.env.SQL_PORT,
-            database: process.env.SQL_DATABASE
+    // creates a pool to handle query requests.
+    const pool = mysql.createPool(sqlConfig);
+
+    this.beforeAll(async () => {
+        server = await app.listen(3000, async function () { });
+
+        let data = JSON.stringify({ username: "bookTestUser", password: "Password1*", email: "email1@email.com" });
+
+        let options = {
+            hostname: 'localhost',
+            port: 3000,
+            path: '/user/add',
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(data, 'utf-8')
+            }
         };
 
-        // creates a pool to handle query requests.
-        const pool = mysql.createPool(sqlConfig);
-        const query = 'DELETE FROM Book WHERE isbn13 = ?';
-        const values = ['9780765378484'];
+        await request(options, data, false);
 
-        await new Promise((resolve, reject) => {
+        await new Promise(async (resolve, reject) => {
+            const key = crypt.getKeyFromPassword(process.env.USER_ENCRYPT_PASSWORD, Buffer.from(process.env.USER_ENCRYPT_SALT));
+            const query = 'UPDATE User SET accessLevel = 1 WHERE username = ? AND password = ?;';
+
+            let username = await crypt.encrypt('bookTestUser', key);
+            let password = await crypt.encrypt('Password1*', key);
+
+            const values = [username, password];
+
             pool.query(query, values, (err, results) => {
                 if (err) {
                     reject(err);
@@ -39,13 +57,43 @@ describe('Book Backend Tests:', function () {
             console.log(err);
         });
 
+        let optionsLogin = {
+            hostname: 'localhost',
+            port: 3000,
+            path: '/user/login?username=bookTestUser&password=Password1*',
+            method: 'GET',
+        };
+
+        userSession = await request(optionsLogin, null, true);
+    });
+
+    // cleans up db and closes server.
+    this.afterAll(async () => {
+        let data = JSON.stringify({ password: "Password1*" });
+        let options = {
+            hostname: 'localhost',
+            port: 3000,
+            path: '/user/remove',
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(data, 'utf-8'),
+                'cookie': userSession.headers[0]
+            }
+        };
+
+        await request(options, data).catch((err) => {
+            console.log(err);
+            return -1;
+        });
+
+        delete pool;
         server.close();
     });
 
     describe('#addRoute', function () {
         it('Tests adding a Book?', async function () {
             let data = JSON.stringify({ isbn: "9780765378484" });
-
             let options = {
                 hostname: 'localhost',
                 port: 3000,
@@ -53,9 +101,24 @@ describe('Book Backend Tests:', function () {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(data, 'utf-8')
+                    'Content-Length': Buffer.byteLength(data, 'utf-8'),
+                    'cookie': userSession.headers[0]
                 }
             };
+
+            let data2 = JSON.stringify({ isbn: "0517226952" });
+            let options2 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book/add',
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data2, 'utf-8'),
+                    'cookie': userSession.headers[0]
+                }
+            };
+
 
             let resp = await request(options, data).catch((err) => {
                 console.log(err);
@@ -67,8 +130,13 @@ describe('Book Backend Tests:', function () {
                 console.log(err);
                 return -1;
             });
-
             assert.equal(false, resp2.success);
+
+            let resp3 = await request(options2, data2).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+            assert.equal(true, resp3.success);
         });
     });
 
@@ -92,6 +160,94 @@ describe('Book Backend Tests:', function () {
         });
     });
 
+    describe('#FilterTest', function () {
+        it('Tests getting a book by search query', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?search=HitchHiker%27s%20guide',
+                method: 'GET',
+            }
+
+            let resp = await request(options, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            assert.equal('0517226952', resp[0].ISBN10);
+        });
+
+        it('Tests getting a book by category', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?categories=fiction',
+                method: 'GET',
+            }
+
+            let resp = await request(options, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            assert.equal(2, resp.length);
+            assert.equal(true, [resp[0].ISBN10, resp[1].ISBN10].includes('0517226952'));
+
+            let options2 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?categories=humour',
+                method: 'GET',
+            }
+
+            let resp2 = await request(options2, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            assert.equal('0517226952', resp2[0].ISBN10);
+        });
+
+        it('Tests getting a book by search key and category', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?search=ender&categories=science%2Chumour',
+                method: 'GET',
+            }
+
+            let resp = await request(options, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+
+            console.log(resp);
+            let title = resp && resp.length ? resp[0].ISBN13 : '';
+            assert.equal('9780765378484', title);
+        });
+
+
+        it('Tests getting a book by ISBN', async function () {
+            let options = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?isbn=9780765378484',
+                method: 'GET',
+            }
+
+            let resp = await request(options, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
+
+            console.log(resp);
+            assert.equal('Ender\'s Game', resp[0].name);
+        });
+    });
+
+
+
     describe('#updateRoute', function () {
         it('Tests update a Book?', async function () {
             let options = {
@@ -114,7 +270,8 @@ describe('Book Backend Tests:', function () {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Content-Length': Buffer.byteLength(data, 'utf-8')
+                    'Content-Length': Buffer.byteLength(data, 'utf-8'),
+                    'cookie': userSession.headers[0]
                 }
             };
 
@@ -153,44 +310,72 @@ describe('Book Backend Tests:', function () {
             assert.equal(true, same);
         });
     });
-});
 
-function request(options, body, needHeader) {
-    return new Promise((resolve, reject) => {
-        let req = http.request(options, (res) => {
-            let body = "";
 
-            res.on('data', (chunk) => {
-                body += chunk;
+    describe('#deleteRoute', function () {
+        it('Tests deleting a Book?', async function () {
+            let options1 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?isbn=0517226952',
+                method: 'get',
+            }
+
+            let options2 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book?isbn=9780765378484',
+                method: 'get',
+            }
+
+            let resp1 = await request(options1, null, false).catch((err) => {
+                console.log(err);
+                return -1;
             });
 
-            res.on('end', () => {
-                if (res.statusCode != "200" && (body && res.statusCode != 302)) {
-                    reject("Call to api end point has failed with response code " + res.statusCode);
-                } else {
-                    try {
-                        let data = JSON.parse(body);
-                        if (needHeader) {
-                            resolve({ data: data, headers: res.headers['set-cookie'] });
-                        } else {
-                            resolve(data);
-                        }
-                    } catch (e) {
-                        reject('Error parsing JSON!');
-                    }
+            let resp2 = await request(options2, null, false).catch((err) => {
+                console.log(err);
+                return -1;
+            });
 
+            let data1 = JSON.stringify({ bookId: resp1[0].bookId });
+            let options3 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book/remove',
+                method: 'delete',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data1, 'utf-8'),
+                    'cookie': userSession.headers[0]
                 }
+            }
+
+            let data2 = JSON.stringify({ bookId: resp2[0].bookId });
+            let options4 = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/book/remove',
+                method: 'delete',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data2, 'utf-8'),
+                    'cookie': userSession.headers[0]
+                }
+            }
+
+            let resp3 = await request(options3, data1, false).catch((err) => {
+                console.log(err);
+                return -1;
             });
 
-            res.on('error', (err) => {
-                reject(err);
+            let resp4 = await request(options4, data2, false).catch((err) => {
+                console.log(err);
+                return -1;
             });
+
+            assert.equal(true, resp3.success);
+            assert.equal(true, resp4.success);
         });
-
-        if (body) {
-            req.write(body);
-        }
-
-        req.end();
     });
-}
+});

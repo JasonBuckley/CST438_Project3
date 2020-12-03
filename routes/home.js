@@ -3,32 +3,41 @@ const router = express.Router();
 
 const search = require("../routes/Util/search");
 
-
 router.get('/', function(req, res, next) {
     res.render('home');
 });
 
 /**
- * Searches for a book using a third party api given a title
+ * Searches for a book using a third party api given a title or isbn
  */
 router.get('/search', async function(req, res, next) {
     let title = req.query.title;
+    let isbn = req.query.isbn;
 
-    let result = await search.searchByTitle(title);
-
-    books = [];
-
-    if (result.numFound == 0 || result.docs.length == 0) {
-        return res.json({ books: books, amount: books.length });
+    if (isbn && !title) {
+        let result = await search.searchByISBN(isbn);
+        return res.json({ successful: true, book: result });
     }
 
-    result.docs.forEach((book) => {
-        if (validate(book)) {
-            books.push(book);
-        }
-    });
+    if (!isbn && title) {
+        let result = await search.searchByTitle(title);
 
-    return res.json({ books: books, amount: books.length });
+        books = [];
+
+        if (result.numFound == 0 || result.docs.length == 0) {
+            return res.json({ successful: true, books: books, amount: books.length });
+        }
+
+        result.docs.forEach((book) => {
+            if (validate(book)) {
+                books.push(book);
+            }
+        });
+
+        return res.json({ successful: true, books: books, amount: books.length });
+    }
+
+    return res.json({ successful: false });
 });
 
 /**
