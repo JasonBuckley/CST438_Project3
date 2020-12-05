@@ -327,9 +327,11 @@ function addBook(data) {
         let isbn10 = data.identifiers.isbn_10 ? data.identifiers.isbn_10[0] : "";
         let publisher = data.publishers && data.publishers[0] ? data.publishers[0].name : "Unknown";
         let subjects = data.subjects;
+        let coverSmallImg = data.cover ? data.cover.small : "None";
+        let publishDate = data.publish_date ? new Date(data.publish_date) : "NULL";
 
-        const query = 'INSERT INTO Book VALUES(null, ?, ?, ?, ?, ?, ?);';
-        const values = [title, author, coverImg, isbn13, isbn10, publisher];
+        const query = 'INSERT INTO Book VALUES(null, ?, ?, ?, ?, ?, ?, ?, ?);';
+        const values = [title, author, coverImg, isbn13, isbn10, publisher, coverSmallImg, publishDate];
 
         pool.query(query, values, (err, results) => {
             if (err) {
