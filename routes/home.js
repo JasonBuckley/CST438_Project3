@@ -3,6 +3,14 @@ const router = express.Router();
 
 const search = require("../routes/Util/search");
 
+router.get('/admin', function (req, res, next) {
+    if (!req.session.user || req.session.user.accessLevel != 1) {
+        res.redirect('/user/login');
+    }
+
+    res.render('adminPage', { username: req.session.username });
+});
+
 router.get('/', function(req, res, next) {
     if (req.session.user) {
         res.render("home", { username: req.session.username });
