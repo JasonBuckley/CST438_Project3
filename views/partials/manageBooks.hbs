@@ -1,0 +1,161 @@
+<table style="max-width:100vw" class="p-5 table table-condensed table-responsive">
+    <thead>
+        <tr>
+            <th style="width:30vw">Cover</th>
+            <th style="width:20vw">Title</th>
+            <th style="width:17.5vw">Author</th>
+            <th style="width:17.5vw">Publisher</th>
+            <th style="width:15vw"></th>
+        </tr>
+    </thead>
+    <tbody id="bookContainer">
+    </tbody>
+</table>
+
+<div class="modal fade" id="updateBookForm" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title mx-auto">Update Product</h4>
+            </div>
+            <form id="updateBookFormData" action="/book/update">
+                <div class="modal-body">
+                    <div>
+                        <div class="hide">
+                            <div class="row">
+                                <div class="col-3">
+                                    <label>bookId: </label>
+                                </div>
+                                <div class="col-1">
+                                    <input id="bookId" class="bookFormInputs" value="-1" type="text" name="bookId" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                <label>Cover:</label>
+                            </div>
+                            <div class="col-1">
+                                <input id="coverImg" class="bookFormInputs" name="coverImg" type="text">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                <label>Title:</label>
+                            </div>
+                            <div class="col-1">
+                                <input id="title" class="bookFormInputs" name="title" type="text">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                <label>Author:</label>
+                            </div>
+                            <div class="col-1">
+                                <input id="author" class="bookFormInputs" name="author" type="text">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-3">
+                                <label>Publisher:</label>
+                            </div>
+                            <div class="col-1">
+                                <input id="publisher" class="bookFormInputs" name="publisher" type="text">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <input type="submit" class="btn btn-info" value="Update Book">
+                    <button type="button" data-toggle="modal" data-dismiss="modal" data-target="#updateProductForm" class="close btn btn-danger">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    populateBooks();
+    function populateBooks() {
+        $("#bookContainer").empty();
+
+        $.ajax({
+            url: "/book",
+            method: "GET",
+            dataType: "json",
+            success: function (results, status) {
+                results.forEach((book) => {
+                    createBookDiv(book);
+                });
+            }
+        });
+    }
+
+    function createBookDiv(book) {
+        let img = book.coverSmallImg == "None" ? `<p>Cover img of ${book.name}</p>` : `<img src="${book.coverSmallImg}" alt="Cover img of ${book.name}" class="img-fluid mb-2 shadow">`
+        $("#bookContainer").append(
+            `
+            <tr>
+                    <td>
+                        <div class="row">
+                            <div class="col-md-5 text-left">
+                                ${img}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <h>${book.name}</h>
+                    </td>
+                    <td>
+                        <h>${book.author}</h>
+                    </td>
+                    <td>
+                        <h>${book.publisher}</h>
+                    </td>
+                    <td>
+                        <p>
+                            <button data-toggle="modal" data-target="#updateBookForm" id="updateBook${book.bookId}" class="btn btn-white border-secondary bg-white btn-md mb-2">Update</button>
+                            <button id="deleteBook${book.bookId}" class="btn btn-white border-secondary bg-white btn-md mb-2">Remove</button>
+                        </p>
+                    </td>
+            </tr>
+            `
+        );
+
+        $(`#deleteBook${book.bookId}`).on('click', function () {
+            $.ajax({
+                url: "/book/remove",
+                method: "delete",
+                dataType: "json",
+                data: {
+                    bookId: book.bookId
+                },
+                success: function (results, status) {
+                    populateBooks();
+                }
+            })
+        });
+
+        $(`#updateBook${book.bookId}`).on('click', function () {
+            $(".bookFormInputs").val("");
+            $("#bookId").val(book.bookId);
+        });
+    }
+
+    $("#updateBookForm").on("submit", function (event) {
+        event.preventDefault();
+        $.ajax({
+            url: '/book/update',
+            type: 'put',
+            data: $("#updateBookFormData").serialize(),
+            success: function (data, status) {
+                if (data.success) {
+                    $("#updateBookForm .close").click();
+                    populateBooks();
+                }
+            }
+        });
+    });
+</script>
