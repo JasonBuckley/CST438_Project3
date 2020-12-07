@@ -354,10 +354,12 @@ function updateBook(data) {
             reject("Need data to update book!");
         }
 
-        let author = data.author.trim() ?  data.author : null;
-        let title = data.title.trim() ? data.title : null;
-        let coverImg = data.coverImg.trim() ? data.coverImg : null;
-        let publisher = data.publisher.trim() ? data.publisher : null;
+        console.log(data);
+
+        let author = data.author && data.author.trim() ?  data.author : null;
+        let title = data.title && data.title.trim() ? data.title : null;
+        let coverImg = data.coverImg && data.coverImg.trim() ? data.coverImg : null;
+        let publisher = data.publisher && data.publisher.trim() ? data.publisher : null;
         let bookId = data.bookId;
         
         const query = 'UPDATE Book SET '
