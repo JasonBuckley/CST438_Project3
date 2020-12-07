@@ -210,7 +210,7 @@ router.put("/update", async function (req, res, next) {
  * Removes a book from the database.  Privilege is limited to admin use.
  */
 router.delete("/remove", async function (req, res, next) {
-    if (!req.session.user && req.session.user.accessLevel != 1 && !req.body.bookId) {
+    if (!req.session.user || req.session.user.accessLevel != 1 || !req.body.bookId) {
         return res.json({ success: false });
     }
     
@@ -354,12 +354,14 @@ function updateBook(data) {
             reject("Need data to update book!");
         }
 
-        let author = data.author;
-        let title = data.title;
-        let coverImg = data.coverImg;
-        let publisher = data.publisher;
-        let bookId = data.bookId;
+        console.log(data);
 
+        let author = data.author && data.author.trim() ?  data.author : null;
+        let title = data.title && data.title.trim() ? data.title : null;
+        let coverImg = data.coverImg && data.coverImg.trim() ? data.coverImg : null;
+        let publisher = data.publisher && data.publisher.trim() ? data.publisher : null;
+        let bookId = data.bookId;
+        
         const query = 'UPDATE Book SET '
             + 'name = IFNULL(?, name), '
             + 'author = IFNULL(?, author), '
