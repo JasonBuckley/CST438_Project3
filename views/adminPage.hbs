@@ -1,0 +1,108 @@
+<style>
+    main {
+        height: auto;
+        min-height: 80vh;
+    }
+
+    #pageHeader {
+        text-align: center;
+        background-color: #22254b;
+        color: white;
+        padding-top: 1vh;
+        padding-bottom: 1vh;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    .hide {
+        display: none;
+    }
+</style>
+
+<h1 id="pageHeader">Admin Dashboard</h1>
+
+<main>
+    <div class="center pt-2">
+        <p>
+            <button id="manageUsersBtn" class="btn btn-secondary mr-3">Manage Users</button>
+            <button id="manageBooksBtn" class="btn btn-secondary mr-3">Manage Books</button>
+            <button id="manageReviewsBtn" class="btn btn-secondary mr-3">Manage Reviews</button>
+        </p>
+    </div>
+
+    <div id="manageContainer">
+        <div id="manageHint">
+            <h3 class="center">Please select what you want to manage!</h3>
+        </div>
+
+        <div id="manageUsers" class="hide">
+            <div class="center">
+                <label>Find User by Username: <input type="text" /></label>
+            </div>
+        </div>
+
+        <div id="manageBooks" class="hide">
+            {{>manageBooks}}
+        </div>
+
+        <div id="manageReviews" class="hide">
+
+        </div>
+    </div>
+</main>
+
+<script>
+    let lastButton = "";
+
+    $('#manageUsersBtn').on('click', function () {
+        if (lastButton == "manageBooksBtn") {
+            $("#manageBooks").addClass('hide');
+            $("#manageBooksBtn").removeClass('btn-primary').addClass('btn-secondary');
+        } else if (lastButton == "manageReviewsBtn") {
+            $("#manageReviews").addClass('hide');
+            $("#manageReviewsBtn").removeClass('btn-primary').addClass('btn-secondary');
+        } else {
+            $("#manageHint").addClass('hide');
+        }
+
+        lastButton = $('#manageUsersBtn').attr('id');
+        $('#manageUsersBtn').removeClass('btn-secondary').addClass('btn-primary');
+        $('#manageUsers').removeClass('hide');
+    });
+
+    $('#manageBooksBtn').on('click', function () {
+        if (lastButton == "manageUsersBtn") {
+            $("#manageUsers").addClass('hide');
+            $("#manageUsersBtn").removeClass('btn-primary').addClass('btn-secondary');
+        } else if (lastButton == "manageReviewsBtn") {
+            $("#manageReviews").addClass('hide');
+            $("#manageReviewsBtn").removeClass('btn-primary').addClass('btn-secondary');
+        } else {
+            $("#manageHint").addClass('hide');
+        }
+
+        lastButton = $('#manageBooksBtn').attr('id');
+        $('#manageBooksBtn').removeClass('btn-secondary').addClass('btn-primary');
+        $('#manageBooks').removeClass('hide');
+    });
+
+    $('#manageReviewsBtn').on('click', function () {
+        if (lastButton == "manageUsersBtn") {
+            $("#manageUsers").addClass('hide');
+            $("#manageUsersBtn").removeClass('btn-primary').addClass('btn-secondary');
+        } else if (lastButton == "manageBooksBtn") {
+            $("#manageBooks").addClass('hide');
+            $("#manageBooksBtn").removeClass('btn-primary').addClass('btn-secondary');
+        } else {
+            $("#manageHint").addClass('hide');
+        }
+
+        lastButton = $('#manageReviewsBtn').attr('id');
+        $('#manageReviewsBtn').removeClass('btn-secondary').addClass('btn-primary');
+        $('#manageReviews').removeClass('hide');
+    });
+</script>
+
+{{>footer}}
