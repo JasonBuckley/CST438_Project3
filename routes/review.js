@@ -22,13 +22,13 @@ router.post('/add-review', async function(req, res) {
     // Ensure a user is logged in and the proper parameters are presen
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.isbn && !req.query.review) {
+    } else if (!req.body.isbn && !req.body.review) {
         return res.json({ success: false, msg : "Incomplete query, missing an isbn or review text." });
     }
 
     // Find a book in the db with a matching isbn value, extract only its bookId value if found
     let query = 'SELECT bookId FROM Book WHERE ISBN10 = ? OR ISBN13 = ? LIMIT 1;';
-    let values = [req.query.isbn, req.query.isbn];
+    let values = [req.body.isbn, req.body.isbn];
 
     let bookId = await dbQuery(query, values);
 
@@ -40,7 +40,7 @@ router.post('/add-review', async function(req, res) {
     let data = {
         userId: req.session.user.userId,
         bookId: bookId[0].bookId,
-        review: req.query.review
+        review: req.body.review
     };
 
     query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, CURDATE(), ?);';
@@ -65,13 +65,13 @@ router.post('/add-rating', async function(req, res) {
     // Ensure a user is logged in and the proper parameters are present
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.isbn || !req.query.rating) {
+    } else if (!req.body.isbn || !req.body.rating) {
         return res.json({ success: false, msg : "Incomplete query, missing an isbn or rating value." });
     }
 
     // Find a book in the db with a matching isbn value, extract only its bookId value if found
     let query = 'SELECT bookId FROM Book WHERE ISBN10 = ? OR ISBN13 = ? LIMIT 1;';
-    let values = [req.query.isbn, req.query.isbn];
+    let values = [req.body.isbn, req.body.isbn];
 
     let book = await dbQuery(query, values);
 
@@ -89,7 +89,7 @@ router.post('/add-rating', async function(req, res) {
     }
 
     // Enforce rating constraints, only an int value of 0-10 inclusive is permitted
-    if (req.query.rating < 0 || req.query.rating > 10) {
+    if (req.body.rating < 0 || req.body.rating > 10) {
         return res.json({ success: false, msg: "Invalid value for a rating, select an integer between 0 and 10 inclusive." });
     }
 
@@ -97,7 +97,7 @@ router.post('/add-rating', async function(req, res) {
     let data = {
         userId: req.session.user.userId,
         bookId: book[0].bookId,
-        rating: req.query.rating
+        rating: req.body.rating
     };
 
     query = 'INSERT INTO Rating VALUES(?, ?, ?);';
@@ -121,17 +121,17 @@ router.post('/add-rating', async function(req, res) {
 router.get('/get-review', async function(req, res) {
     let query = "SELECT * FROM Review WHERE ";
 
-    if (req.query.reviewId) {
+    if (req.body.reviewId) {
         query += "reviewId = ?";
-        let reviews = await dbQuery(query, req.query.reviewId);
+        let reviews = await dbQuery(query, req.body.reviewId);
         return res.json({reviews: reviews});
-    } else if (req.query.bookId) {
+    } else if (req.body.bookId) {
         query += "bookId = ? ORDER BY uploadDate DESC;";
-        let reviews = await dbQuery(query, req.query.bookId);
+        let reviews = await dbQuery(query, req.body.bookId);
         return res.json({reviews: reviews});
-    } else if (req.query.userId) {
+    } else if (req.body.userId) {
         query += "userId = ? ORDER BY uploadDate DESC;";
-        let reviews = await dbQuery(query, req.query.userId);
+        let reviews = await dbQuery(query, req.body.userId);
         return res.json({reviews: reviews});
     } else {
         return res.json({success: false, msg: "Invalid parameters"});
@@ -142,24 +142,24 @@ router.get('/get-review', async function(req, res) {
  * Retrieves reviews for a book given a reviewId, bookId, or a userId
  */
 router.get('/get-rating', async function(req, res) {
-    if (req.query.userId && req.query.bookId) {
+    if (req.body.userId && req.body.bookId) {
         // Get single rating for a book for a specific user
         let query = "SELECT rating FROM Rating WHERE userId = ? AND bookId = ? LIMIT 1;";
-        let values = [req.query.userId, req.query.bookId]
+        let values = [req.body.userId, req.body.bookId]
         let rating = await dbQuery(query, values);
         return res.json({ rating: rating[0].rating });
         
-    } else if (req.query.userId) {
+    } else if (req.body.userId) {
         // Get all ratings made by a given user
         let query = "SELECT bookId, rating FROM Rating WHERE userId = ?;";
-        let values = [req.query.userId];
+        let values = [req.body.userId];
         let ratings = await dbQuery(query, values);
         return res.json({ ratings: ratings });
 
-    } else if (req.query.bookId) {
+    } else if (req.body.bookId) {
         // Get average rating for a book
         let query = "SELECT AVG(rating) AS avg_rating FROM Rating WHERE bookId = ?;";
-        let values = [req.query.bookId];
+        let values = [req.body.bookId];
         let rating = await dbQuery(query, values);
         return res.json({ avg_rating: rating });
 
@@ -174,11 +174,11 @@ router.get('/get-rating', async function(req, res) {
 router.put('/update-review', async function(req, res) {
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.reviewId && !req.query.review) {
+    } else if (!req.body.reviewId && !req.body.review) {
         return res.json({ success: false });
     }
 
-    let reviewId = req.query.reviewId;
+    let reviewId = req.body.reviewId;
     let query = "SELECT * FROM Review WHERE reviewId = ? LIMIT 1;";
     let review = await dbQuery(query, reviewId);
 
@@ -186,7 +186,7 @@ router.put('/update-review', async function(req, res) {
         return res.json({ success: false });
     }
 
-    let reviewText = req.query.review;
+    let reviewText = req.body.review;
 
     query = 'UPDATE Review SET review = ? WHERE reviewId = ?;';
     const values = [reviewText, review[0].reviewId];
@@ -202,12 +202,12 @@ router.put('/update-review', async function(req, res) {
 router.put('/update-rating', async function(req, res) {
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.bookId && !req.query.oldRating && !req.query.newRating) {
+    } else if (!req.body.bookId && !req.body.oldRating && !req.body.newRating) {
         return res.json({ success: false });
     }
 
     let query = "SELECT * FROM Rating WHERE userId = ? AND bookId = ? AND rating = ? LIMIT 1;";
-    let values = [req.session.user.userId, req.query.bookId, req.query.oldRating];
+    let values = [req.session.user.userId, req.body.bookId, req.body.oldRating];
     let review = await dbQuery(query, reviewId);
 
     if (!review[0]) {
@@ -215,7 +215,7 @@ router.put('/update-rating', async function(req, res) {
     }
 
     query = 'UPDATE Rating SET rating = ? WHERE userId = ? AND bookId = ?;';
-    values = [req.query.newRating, req.session.user.userId, req.query.bookId];
+    values = [req.body.newRating, req.session.user.userId, req.body.bookId];
 
     let result = await dbQuery(query, values);
 
@@ -230,15 +230,15 @@ router.delete('/delete-review', async function(req, res) {
     // Ensure a user is logged in and all required parameters are present
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.reviewId || !req.query.userId || !req.query.bookId || !req.query.review) {
+    } else if (!req.body.reviewId || !req.body.userId || !req.body.bookId || !req.body.review) {
         return res.json({ success: false });
     }
 
     // To be able to delete a review a user must have an accessLevel of 1 
     // or the userId of the review to be deleted must match their own
-    if (req.session.user.accessLevel == 1 || req.session.user.userId == req.query.userId) {
+    if (req.session.user.accessLevel == 1 || req.session.user.userId == req.body.userId) {
         const query = "DELETE FROM Review WHERE reviewId = ? AND userId = ? AND bookId = ? AND review = ?;";
-        const values = [req.query.reviewId, req.query.userId, req.query.bookId, req.query.review];
+        const values = [req.body.reviewId, req.body.userId, req.body.bookId, req.body.review];
         let result = await dbQuery(query, values);
         return res.json({success: result.affectedRows >= 1});
     } else {
