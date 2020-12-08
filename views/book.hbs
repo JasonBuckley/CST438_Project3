@@ -132,6 +132,7 @@
 
 <script>
     $(document).ready(function () {
+        /*global $*/
         let isbn = $("#book").attr("isbn");
 
         let book = searchByISBN(isbn).then((result) => {
@@ -216,8 +217,27 @@
                     <p>${review.rating}</p>
                 </td>
             </tr>
+        <button id="deleteButton">Delete</button><br>
             `
         );
+        
     }
+    function deleteB(review, userId){
+        
+        if(review.userId == userId){
+             return $.ajax({
+                url:`/review/delete-review`, 
+                method:"DELETE",
+                dataType: "json",
+                success: function(res){
+                    return res; 
+                }
+            }); 
+        }else{
+            console.log("review.userID does not match user.userID", );
+           return
+        }
+    }
+    $("#deleteButton").on("click", deleteB);
 
 </script>

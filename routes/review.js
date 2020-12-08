@@ -120,18 +120,18 @@ router.post('/add-rating', async function(req, res) {
  */
 router.get('/get-review', async function(req, res) {
     let query = "SELECT * FROM Review WHERE ";
-
-    if (req.body.reviewId) {
+    console.log("debug", req.query); 
+    if (req.query.reviewId) {
         query += "reviewId = ?";
-        let reviews = await dbQuery(query, req.body.reviewId);
+        let reviews = await dbQuery(query, req.query.reviewId);
         return res.json({reviews: reviews});
-    } else if (req.body.bookId) {
+    } else if (req.query.bookId) {
         query += "bookId = ? ORDER BY uploadDate DESC;";
-        let reviews = await dbQuery(query, req.body.bookId);
+        let reviews = await dbQuery(query, req.query.bookId);
         return res.json({reviews: reviews});
-    } else if (req.body.userId) {
+    } else if (req.query.userId) {
         query += "userId = ? ORDER BY uploadDate DESC;";
-        let reviews = await dbQuery(query, req.body.userId);
+        let reviews = await dbQuery(query, req.query.userId);
         return res.json({reviews: reviews});
     } else {
         return res.json({success: false, msg: "Invalid parameters"});
@@ -142,24 +142,24 @@ router.get('/get-review', async function(req, res) {
  * Retrieves reviews for a book given a reviewId, bookId, or a userId
  */
 router.get('/get-rating', async function(req, res) {
-    if (req.body.userId && req.body.bookId) {
+    if (req.query.userId && req.query.bookId) {
         // Get single rating for a book for a specific user
         let query = "SELECT rating FROM Rating WHERE userId = ? AND bookId = ? LIMIT 1;";
-        let values = [req.body.userId, req.body.bookId]
+        let values = [req.query.userId, req.query.bookId]
         let rating = await dbQuery(query, values);
         return res.json({ rating: rating[0].rating });
         
-    } else if (req.body.userId) {
+    } else if (req.query.userId) {
         // Get all ratings made by a given user
         let query = "SELECT bookId, rating FROM Rating WHERE userId = ?;";
-        let values = [req.body.userId];
+        let values = [req.query.userId];
         let ratings = await dbQuery(query, values);
         return res.json({ ratings: ratings });
 
-    } else if (req.body.bookId) {
+    } else if (req.query.bookId) {
         // Get average rating for a book
         let query = "SELECT AVG(rating) AS avg_rating FROM Rating WHERE bookId = ?;";
-        let values = [req.body.bookId];
+        let values = [req.query.bookId];
         let rating = await dbQuery(query, values);
         return res.json({ avg_rating: rating });
 
@@ -208,7 +208,7 @@ router.put('/update-rating', async function(req, res) {
 
     let query = "SELECT * FROM Rating WHERE userId = ? AND bookId = ? AND rating = ? LIMIT 1;";
     let values = [req.session.user.userId, req.body.bookId, req.body.oldRating];
-    let review = await dbQuery(query, reviewId);
+    let review = await dbQuery(query, review.reviewId);
 
     if (!review[0]) {
         return res.json({ success: false });
@@ -228,6 +228,7 @@ router.put('/update-rating', async function(req, res) {
  */
 router.delete('/delete-review', async function(req, res) {
     // Ensure a user is logged in and all required parameters are present
+    
     if (!req.session.user) {
         return res.redirect("/user/login");
     } else if (!req.body.reviewId || !req.body.userId || !req.body.bookId || !req.body.review) {

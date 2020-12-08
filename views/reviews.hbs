@@ -114,9 +114,10 @@ $(document).ready(function () {
     
     });//end submit button 
     
+    //load all comments 
     $.ajax({
        type:"GET",
-       url:'/review/get',
+       url:'/review/get-review',
        dataType: 'json',
        data: { bookId:$('#bookId').val() },
        success: function(data){
@@ -127,8 +128,9 @@ $(document).ready(function () {
                $('#reviewContainer').append(`<br><p class="reviewContainer"><span class="miniContainer2">User ${data.reviews[x].userId} said:</span></br><br> <span class="miniContainer">${data.reviews[x].review}<span></p><br>`);
            }
        }
-    });    
+    });//end ajax comment loading    
 
+    
 });//end DOM
 </script>
 
@@ -198,7 +200,7 @@ $(document).ready(function () {
     <div>
         Quick Nav:
         <li class=none><a href="/">Home</a></li>
-        <li class=none><a href="/reviews">Refresh <strong>THIS</strong> Page</a></li>
+
     </div>
     
     
