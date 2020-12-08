@@ -218,6 +218,8 @@
                 </td>
             </tr>
         <button id="deleteButton">Delete</button><br>
+        <button id="editButton">Delete</button><br>
+        
             `
         );
         
@@ -239,5 +241,21 @@
         }
     }
     $("#deleteButton").on("click", deleteB);
+    
+    $("#editButton").on("click", function editB(review, userID){
+        if(review.userId == userID){
+             return $.ajax({
+                url:`/review/update-review`, 
+                method:"PUT",
+                dataType: "json",
+                success: function(res){
+                    return res; 
+                }
+            }); 
+        }else{
+            console.log("review.userID does not match user.userID", );
+            return;
+        }
+    });
 
 </script>
