@@ -65,7 +65,7 @@ function showBooks(books) {
 function getTopFive() {
     return $.ajax({
         type: "GET",
-        url: "/review/top-five",
+        url: "/review/top-five-rated",
         dataType: "json",
         contentType: "application/json",
         success: function(result, status) {
@@ -84,8 +84,8 @@ function showTopFive(books) {
     main.appendChild(headerElement);
 
     books.forEach((book) => {
-        const { bookId, name, author, ISBN10, ISBN13, avg_rating, coverImg } = book;
-        console.log(bookId, name, author, ISBN10, ISBN13, avg_rating, coverImg);
+        const { bookId, name, ISBN10, ISBN13, avg_rating, coverImg } = book;
+        console.log(bookId, name, ISBN10, ISBN13, avg_rating, coverImg);
 
         let isbn = ISBN10 == null ? (ISBN13 == null ? "": ISBN13) : ISBN10;
         console.log(!isbn);

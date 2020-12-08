@@ -250,7 +250,7 @@ router.delete('/delete-review', async function(req, res) {
  * Gets top five rated book information
  */
 router.get('/top-five-rated', async function(req, res) {
-    let query = "SELECT name, coverImg, ISBN10, ISBN13, AVG(rating) AS avg_rating FROM Book NATURAL JOIN  Rating GROUP BY name ORDER BY avg_rating DESC LIMIT 5;";
+    let query = "SELECT bookId, name, coverImg, ISBN10, ISBN13, AVG(rating) AS avg_rating FROM Book NATURAL JOIN  Rating GROUP BY name ORDER BY avg_rating DESC LIMIT 5;";
     let result = await dbQuery(query, []);
     return res.json({ res: result });
 });
