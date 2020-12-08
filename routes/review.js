@@ -18,7 +18,7 @@ const pool = mysql.createPool(sqlConfig);
 /**
  * Adds a review given a userId and bookId
  */
-router.post('/add', async function(req, res) {
+router.post('/add-review', async function(req, res) {
     if (!req.session.user) {
         return res.redirect("/user/login");
     } else if (!req.query.isbn && !req.query.review && !req.query.rating) {
@@ -43,6 +43,60 @@ router.post('/add', async function(req, res) {
 
     query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, ?);';
     values = [data.userId, data.bookId, data.review, data.rating];
+
+    let result = await dbQuery(query, values).catch((err) => {
+        console.log(err);
+        return -1;
+    });
+
+    if (result == -1) {
+        return res.json({success: false});
+    }
+
+    return res.json({ success: result.insertId > -1 });
+});
+
+router.post('/add-rating', async function(req, res) {
+    // Ensure a user is logged in and the proper parameters are present
+    if (!req.session.user) {
+        return res.redirect("/user/login");
+    } else if (!req.query.isbn || !req.query.rating) {
+        return res.json({ success: false, msg : "Incomplete query, missing an isbn or rating value." });
+    }
+
+    // Find a book in the db with a matching isbn value, extract only its bookId value if found
+    let query = 'SELECT bookId FROM Book WHERE ISBN10 = ? OR ISBN13 = ? LIMIT 1;';
+    let values = [req.query.isbn, req.query.isbn];
+
+    let book = await dbQuery(query, values);
+
+    if (!book[0]) {
+        return res.json({ success: false, msg: "Invalid isbn, no matching book information found." });
+    }
+
+    // Ensure a user has not previously rated this book, only one rating per user is allowed
+    query = 'SELECT * FROM Rating WHERE userId = ? AND bookId = ?;';
+    values = [req.session.user.userId, book[0].bookId];
+
+    let rating = await dbQuery(query, values);
+    if (rating[0]) {
+        return res.json({ success: false, msg: "The given user has already rated this book", previous_rating: rating[0].rating });
+    }
+
+    // Enforce rating constraints, only an int value of 0-10 inclusive is permitted
+    if (req.query.rating < 0 || req.query.rating > 10) {
+        return res.json({ success: false, msg: "Invalid value for a rating, select an integer between 0 and 10 inclusive." });
+    }
+
+    // Insert values into the db and return the result
+    let data = {
+        userId: req.session.user.userId,
+        bookId: book[0].bookId,
+        rating: req.query.rating
+    };
+
+    query = 'INSERT INTO Rating VALUES(?, ?, ?);';
+    values = [data.userId, data.bookId, data.rating];
 
     let result = await dbQuery(query, values).catch((err) => {
         console.log(err);
