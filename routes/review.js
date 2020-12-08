@@ -126,11 +126,11 @@ router.get('/get-review', async function(req, res) {
         let reviews = await dbQuery(query, req.query.reviewId);
         return res.json({reviews: reviews});
     } else if (req.query.bookId) {
-        query += "bookId = ?";
+        query += "bookId = ? ORDER BY uploadDate DESC;";
         let reviews = await dbQuery(query, req.query.bookId);
         return res.json({reviews: reviews});
     } else if (req.query.userId) {
-        query += "userId = ?";
+        query += "userId = ? ORDER BY uploadDate DESC;";
         let reviews = await dbQuery(query, req.query.userId);
         return res.json({reviews: reviews});
     } else {
@@ -141,21 +141,31 @@ router.get('/get-review', async function(req, res) {
 /**
  * Retrieves reviews for a book given a reviewId, bookId, or a userId
  */
-router.get('get-rating', async function(req, res) {
+router.get('/get-rating', async function(req, res) {
     if (req.query.userId && req.query.bookId) {
         // Get single rating for a book for a specific user
+        let query = "SELECT rating FROM Rating WHERE userId = ? AND bookId = ? LIMIT 1;";
+        let values = [req.query.userId, req.query.bookId]
+        let rating = await dbQuery(query, values);
+        return res.json({ rating: rating[0].rating });
         
     } else if (req.query.userId) {
         // Get all ratings made by a given user
+        let query = "SELECT bookId, rating FROM Rating WHERE userId = ?;";
+        let values = [req.query.userId];
+        let ratings = await dbQuery(query, values);
+        return res.json({ ratings: ratings });
 
     } else if (req.query.bookId) {
         // Get average rating for a book
+        let query = "SELECT AVG(rating) AS avg_rating FROM Rating WHERE bookId = ?;";
+        let values = [req.query.bookId];
+        let rating = await dbQuery(query, values);
+        return res.json({ avg_rating: rating });
 
     } else {
         return res.json({ success: false, msg : "Invalid query, unable to retrieve rating information." });
     }
-
-    
 });
 
 /**
