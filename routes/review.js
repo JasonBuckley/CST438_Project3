@@ -16,33 +16,35 @@ const sqlConfig = {
 const pool = mysql.createPool(sqlConfig);
 
 /**
- * Adds a review given a userId and bookId
+ * Adds a review given a userId, bookId, and review text
  */
 router.post('/add-review', async function(req, res) {
+    // Ensure a user is logged in and the proper parameters are presen
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.isbn && !req.query.review && !req.query.rating) {
-        return res.json({ success: false });
+    } else if (!req.query.isbn && !req.query.review) {
+        return res.json({ success: false, msg : "Incomplete query, missing an isbn or review text." });
     }
 
+    // Find a book in the db with a matching isbn value, extract only its bookId value if found
     let query = 'SELECT bookId FROM Book WHERE ISBN10 = ? OR ISBN13 = ? LIMIT 1;';
     let values = [req.query.isbn, req.query.isbn];
 
     let bookId = await dbQuery(query, values);
 
     if (!bookId[0]) {
-        return res.json({ success: false });
+        return res.json({ success: false, msg: "Invalid isbn, no matching book information found." });
     }
 
+    // Insert values into the db and return the result
     let data = {
         userId: req.session.user.userId,
         bookId: bookId[0].bookId,
-        review: req.query.review,
-        rating: req.query.rating
+        review: req.query.review
     };
 
-    query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, ?);';
-    values = [data.userId, data.bookId, data.review, data.rating];
+    query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, CURDATE(), ?);';
+    values = [data.userId, data.bookId, data.review, 3];
 
     let result = await dbQuery(query, values).catch((err) => {
         console.log(err);
@@ -50,12 +52,15 @@ router.post('/add-review', async function(req, res) {
     });
 
     if (result == -1) {
-        return res.json({success: false});
+        return res.json({success: false, msg: "Database insertion error."});
     }
 
     return res.json({ success: result.insertId > -1 });
 });
 
+/**
+ * Adds a rating given a userId and bookId and rating value
+ */
 router.post('/add-rating', async function(req, res) {
     // Ensure a user is logged in and the proper parameters are present
     if (!req.session.user) {
@@ -104,7 +109,7 @@ router.post('/add-rating', async function(req, res) {
     });
 
     if (result == -1) {
-        return res.json({success: false});
+        return res.json({success: false, msg: "Database insertion error."});
     }
 
     return res.json({ success: result.insertId > -1 });
@@ -113,9 +118,9 @@ router.post('/add-rating', async function(req, res) {
 /**
  * Retrieves reviews for a book given a reviewId, bookId, or a userId
  */
-router.get('/get', async function(req, res) {
+router.get('/get-review', async function(req, res) {
     let query = "SELECT * FROM Review WHERE ";
-    console.log(query);
+
     if (req.query.reviewId) {
         query += "reviewId = ?";
         let reviews = await dbQuery(query, req.query.reviewId);
@@ -131,16 +136,35 @@ router.get('/get', async function(req, res) {
     } else {
         return res.json({success: false, msg: "Invalid parameters"});
     }
+});
+
+/**
+ * Retrieves reviews for a book given a reviewId, bookId, or a userId
+ */
+router.get('get-rating', async function(req, res) {
+    if (req.query.userId && req.query.bookId) {
+        // Get single rating for a book for a specific user
+        
+    } else if (req.query.userId) {
+        // Get all ratings made by a given user
+
+    } else if (req.query.bookId) {
+        // Get average rating for a book
+
+    } else {
+        return res.json({ success: false, msg : "Invalid query, unable to retrieve rating information." });
+    }
+
     
 });
 
 /**
- * Updates a review given a valid reviewId and a review and/or rating
+ * Updates a review given a valid reviewId and review text
  */
-router.put('/update', async function(req, res) {
+router.put('/update-review', async function(req, res) {
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.reviewId && !req.query.review && !req.query.rating) {
+    } else if (!req.query.reviewId && !req.query.review) {
         return res.json({ success: false });
     }
 
@@ -153,10 +177,35 @@ router.put('/update', async function(req, res) {
     }
 
     let reviewText = req.query.review;
-    let ratingValue = req.query.rating;
 
-    query = 'UPDATE Review SET review = ?, rating = ? WHERE reviewId = ?;';
-    const values = [reviewText, ratingValue, review[0].reviewId];
+    query = 'UPDATE Review SET review = ? WHERE reviewId = ?;';
+    const values = [reviewText, review[0].reviewId];
+
+    let result = await dbQuery(query, values);
+
+    return res.json({ success: result.affectedRows > 0 });
+});
+
+/**
+ * Updates a rating given a valid userId, bookId and rating value
+ */
+router.put('/update-rating', async function(req, res) {
+    if (!req.session.user) {
+        return res.redirect("/user/login");
+    } else if (!req.query.bookId && !req.query.oldRating && !req.query.newRating) {
+        return res.json({ success: false });
+    }
+
+    let query = "SELECT * FROM Rating WHERE userId = ? AND bookId = ? AND rating = ? LIMIT 1;";
+    let values = [req.session.user.userId, req.query.bookId, req.query.oldRating];
+    let review = await dbQuery(query, reviewId);
+
+    if (!review[0]) {
+        return res.json({ success: false });
+    }
+
+    query = 'UPDATE Rating SET rating = ? WHERE userId = ? AND bookId = ?;';
+    values = [req.query.newRating, req.session.user.userId, req.query.bookId];
 
     let result = await dbQuery(query, values);
 
@@ -167,19 +216,19 @@ router.put('/update', async function(req, res) {
 /**
  * Deletes a review given a valid review attributes and the correct access level
  */
-router.delete('/delete', async function(req, res) {
+router.delete('/delete-review', async function(req, res) {
     // Ensure a user is logged in and all required parameters are present
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.query.reviewId || !req.query.userId || !req.query.bookId || !req.query.review || !req.query.rating) {
+    } else if (!req.query.reviewId || !req.query.userId || !req.query.bookId || !req.query.review) {
         return res.json({ success: false });
     }
 
     // To be able to delete a review a user must have an accessLevel of 1 
     // or the userId of the review to be deleted must match their own
     if (req.session.user.accessLevel == 1 || req.session.user.userId == req.query.userId) {
-        const query = "DELETE FROM Review WHERE reviewId = ? AND userId = ? AND bookId = ? AND review = ? AND rating = ?";
-        const values = [req.query.reviewId, req.query.userId, req.query.bookId, req.query.review, req.query.rating];
+        const query = "DELETE FROM Review WHERE reviewId = ? AND userId = ? AND bookId = ? AND review = ?;";
+        const values = [req.query.reviewId, req.query.userId, req.query.bookId, req.query.review];
         let result = await dbQuery(query, values);
         return res.json({success: result.affectedRows >= 1});
     } else {
@@ -187,8 +236,11 @@ router.delete('/delete', async function(req, res) {
     }
 });
 
-router.get('/top-five', async function(req, res) {
-    const query = "SELECT *, AVG(rating) AS avg_rating FROM Book NATURAL JOIN  Review GROUP BY name ORDER BY avg_rating DESC LIMIT 5;";
+/**
+ * Gets top five rated book information
+ */
+router.get('/top-five-rated', async function(res) {
+    const query = "SELECT *, AVG(rating) AS avg_rating FROM Book NATURAL JOIN  Rating GROUP BY name ORDER BY avg_rating DESC LIMIT 5;";
     let result = await dbQuery(query, []);
     return res.json({res: result});
 });
