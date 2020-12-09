@@ -133,6 +133,16 @@
 <script>
     $(document).ready(function () {
         /*global $*/
+        function getUID(){
+            $.ajax({
+            url: `/user/getUserId`,
+            method: "GET",
+            dataType: "json",
+            success: function (result, status) {
+                return result;
+            }
+        });
+        }
         let isbn = $("#book").attr("isbn");
 
         let book = searchByISBN(isbn).then((result) => {
@@ -154,10 +164,13 @@
             console.log(author_img);
         });
 
-        getBook(isbn).then((result) => {
+        getBook(isbn).then(async(result) => {
             console.log(result);
             const { bookId } = result[0];
             console.log(bookId);
+            let data = await getUID();
+            let userId = data.success ? data.userId : -1;
+            
             getReviews(bookId).then((result) => {
                 console.log(result.reviews);
                 result.reviews.forEach((review) => {
@@ -165,6 +178,7 @@
                 });
             });
         });
+        
     });
 
     function searchByISBN(isbn) {
@@ -200,7 +214,7 @@
         });
     }
 
-    function createFrameDiv(review) {
+    function createFrameDiv(review, user) {
         $("#reviewBox").append(
             `
             <tr>
@@ -216,17 +230,29 @@
                 <td>
                     <p>${review.rating}</p>
                 </td>
+                <td id="buttons${review.reviewId}">
+                
+                </td>
             </tr>
-        <button id="deleteButton">Delete</button><br>
-        <button id="editButton">Delete</button><br>
+        
         
             `
         );
+        if(user.userId == review.userId){
+            $(`#buttons$[review.reviewId]`).append(
+                `
+                <button id="deleteButton">Delete</button><br>
+                <button id="editButton">Delete</button><br>
+                
+                `
+                );
+        }
         
     }
-    function deleteB(review, userId){
+    
+    function deleteB(review, user){
         
-        if(review.userId == userId){
+        if(review.userId == user.userId){
              return $.ajax({
                 url:`/review/delete-review`, 
                 method:"DELETE",
@@ -237,13 +263,13 @@
             }); 
         }else{
             console.log("review.userID does not match user.userID", );
-           return
+           return;
         }
     }
     $("#deleteButton").on("click", deleteB);
     
-    $("#editButton").on("click", function editB(review, userID){
-        if(review.userId == userID){
+    $("#editButton").on("click", function editB(review, user){
+        if(review.userId == user.userId){
              return $.ajax({
                 url:`/review/update-review`, 
                 method:"PUT",
