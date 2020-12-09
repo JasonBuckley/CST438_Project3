@@ -3,7 +3,6 @@ var router = express.Router();
 const mysql = require("mysql");
 const crypt = require("../routes/Util/crypt");
 const { Buffer } = require("buffer");
-const { access } = require('fs');
 
 const KEY = crypt.getKeyFromPassword(process.env.USER_ENCRYPT_PASSWORD, Buffer.from(process.env.USER_ENCRYPT_SALT));
 
@@ -307,7 +306,7 @@ router.get('/get', async function (req, res, next) {
                     resolve(results[0].userId);
                 } else {
                     resolve(-1);
-                }   
+                }
             }
         });
     }).catch((err) => {
@@ -353,5 +352,52 @@ router.get('/', async function (req, res, next) {
     return res.json({ username: username, password: password, email: email });
 });
 
+/**
+ * Gets a user's id if they are currently logged in.
+ */
+router.get('/getUserId', function (req, res, next) {
+    if (!req.session.user) {
+        return res.json({ success: false, msg: "failed! Not logged in!" });
+    }
+
+    return res.json({ success: true, userId: req.session.user.userId });
+});
+
+/**
+ * Given a userId it gets there username.
+ */
+router.get('/getUsername', async function (req, res, next) {
+    if (!req.query.userId) {
+        return res.json({ success: false, msg: "failed! Need a userId!" });
+    }
+
+    let encryptUsername = await new Promise((resolve, reject) => {
+        let query = "Select username from User WHERE userId = ? LIMIT 1;";
+        let values = [req.query.userId];
+
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                if (Array.isArray(results) && results.length) {
+                    resolve(results[0].username);
+                } else {
+                    resolve(-1);
+                }
+            }
+        });
+    }).catch((err) => {
+        return -1;
+    });
+
+    if (encryptUsername == -1) {
+        return res.json({ username: "unknown" });
+    }
+
+    let username = (await crypt.decrypt(encryptUsername, KEY)).toString('utf-8');
+    delete encryptUsername;
+
+    return res.json({ success: true, username: username });
+});
 
 module.exports = router;
