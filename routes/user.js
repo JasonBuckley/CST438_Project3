@@ -363,4 +363,41 @@ router.get('/getUserId', function (req, res, next) {
     return res.json({ success: true, userId: req.session.user.userId });
 });
 
+/**
+ * Given a userId it gets there username.
+ */
+router.get('/getUsername', async function (req, res, next) {
+    if (!req.query.userId) {
+        return res.json({ success: false, msg: "failed! Need a userId!" });
+    }
+
+    let encryptUsername = await new Promise((resolve, reject) => {
+        let query = "Select username from User WHERE userId = ? LIMIT 1;";
+        let values = [req.query.userId];
+
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                if (Array.isArray(results) && results.length) {
+                    resolve(results[0].username);
+                } else {
+                    resolve(-1);
+                }
+            }
+        });
+    }).catch((err) => {
+        return -1;
+    });
+
+    if (encryptUsername == -1) {
+        return res.json({ username: "unknown" });
+    }
+
+    let username = (await crypt.decrypt(encryptUsername, KEY)).toString('utf-8');
+    delete encryptUsername;
+
+    return res.json({ success: true, username: username });
+});
+
 module.exports = router;
