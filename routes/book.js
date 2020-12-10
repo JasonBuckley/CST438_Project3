@@ -331,7 +331,8 @@ function addBook(data) {
         let publishDate = data.publish_date ? new Date(data.publish_date) : "NULL";
 
         const query = 'INSERT INTO Book VALUES(null, ?, ?, ?, ?, ?, ?, ?, ?);';
-        const values = [title, author, coverImg, isbn13, isbn10, publisher, coverSmallImg, publishDate];
+        const values = [title, author, coverImg, isbn13, publisher, isbn10, coverSmallImg, publishDate];
+        
 
         pool.query(query, values, (err, results) => {
             if (err) {
