@@ -275,13 +275,12 @@ async function updateUser(username, password, email, user) {
  * @returns Promise
  */
 async function deleteUser(userId, password, accessLevel = 0) {
-    const query = accessLevel == 0 ? "DELETE FROM User WHERE userId = ? AND password = ?" : "DELETE FROM User WHERE userId = ?";
+    const query = accessLevel == 0 ? "DELETE FROM User WHERE userId = ? AND password = ?" : "DELETE FROM User WHERE userId = ? AND accessLevel != 1";
     const values = accessLevel == 0 ? [userId, password] : [userId];
 
     return new Promise((resolve, reject) => {
         pool.query(query, values, (err, results) => {
             if (err) {
-                req.err = err;
                 reject(err);
             } else {
                 resolve(results.affectedRows);
@@ -295,6 +294,7 @@ async function deleteUser(userId, password, accessLevel = 0) {
 /**
  * Get a specific user's userId by searching there username.
  */
+
 router.get('/get', async function (req, res, next) {
     if (req.session.user.accessLevel != 1) {
         return res.json({ success: false, msg: "access denied" });
@@ -304,8 +304,8 @@ router.get('/get', async function (req, res, next) {
 
     let username = await crypt.encrypt(req.query.username, KEY);
 
-    let userId = await new Promise((resolve, reject) => {
-        const query = "SELECT userId FROM User WHERE username = ? LIMIT 1;";
+    let result = await new Promise((resolve, reject) => {
+        const query = "SELECT userId, accessLevel FROM User WHERE username = ? LIMIT 1;";
         const values = [username];
 
         pool.query(query, values, (err, results) => {
@@ -313,9 +313,9 @@ router.get('/get', async function (req, res, next) {
                 reject(err);
             } else {
                 if (Array.isArray(results) && results.length) {
-                    resolve(results[0].userId);
+                    resolve({ userId: results[0].userId });
                 } else {
-                    resolve(-1);
+                    resolve({ userId: -1, msg: "Username Not Found!"});
                 }
             }
         });
@@ -323,7 +323,7 @@ router.get('/get', async function (req, res, next) {
         return -1;
     });
 
-    return res.json({ userId: userId });
+    return res.json(result);
 });
 
 /**
@@ -339,9 +339,10 @@ router.delete('/ban', async function (req, res, next) {
     let affectedRows = await deleteUser(req.body.userId, null, req.session.user.accessLevel)
         .catch((err) => {
             console.log(err);
+            return -1;
         });
 
-    return res.json({ success: affectedRows > -1 });
+    return res.json({ success: affectedRows > 0, msg: affectedRows > 0 ? " has been removed" : "If you tried to ban an admin you can't!"});
 });
 
 

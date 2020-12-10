@@ -209,6 +209,7 @@ describe('User Backend Tests:', function () {
                     console.log(err);
                     return -1;
                 });
+
                 assert.equal(true, resp2.success);
 
                 let resp3 = await request(optionsGet, null, false).catch((err) => {
