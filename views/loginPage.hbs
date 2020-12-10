@@ -1,15 +1,10 @@
-﻿{{>nav}}
-<html>
-<head>
-    <title></title>
-    <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
-    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <link rel='stylesheet' type='text/css' href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'>
+﻿<head>
     <link rel='stylesheet' href='/stylesheets/login.css' />
 </head>
 
 <body>
+    {{>nav}}
+
     <div class='container'>
         <div class='jumbotron'>
             <h1> Login Page </h1> <br>
@@ -17,14 +12,16 @@
                 <div class='form-group row'>
                     <div class='col-sm-4'></div>
                     <div class='col-sm-4'>
-                        <input type='text' placeholder="Username" class='field shadow' id='username' name="username" required>
+                        <input type='text' placeholder="Username" class='field shadow' id='username' name="username"
+                            required>
                     </div>
                 </div>
                 <div class='form-group row'></div>
                 <div class='form-group row'>
                     <div class='col-sm-4'></div>
                     <div class='col-sm-4 '>
-                        <input type='password' placeholder="Password" class='field shadow' id='password' name="password" required>
+                        <input type='password' placeholder="Password" class='field shadow' id='password' name="password"
+                            required>
                     </div>
                 </div>
 
@@ -52,6 +49,7 @@
         </div>
     </div>
 
+    {{>footer}}
     <script>
         $("#loginForm").on('submit', function (event) {
             event.preventDefault();
@@ -63,7 +61,7 @@
                 data: loginForm.serialize(),
                 success: function (results, status) {
                     $("#errorMessage").html("");
-                
+
                     if (results.success) {
                         window.location = window.location.origin
                     } else {
@@ -75,5 +73,3 @@
         })
     </script>
 </body>
-</html>
-

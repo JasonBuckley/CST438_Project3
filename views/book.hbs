@@ -4,51 +4,51 @@
 
 <body>
     {{>nav}}
-
-    <div class="container">
-        <!-- Left Column / Book Cover -->
-        <div class="left-column">
-            <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg" id="book" isbn="{{isbn}}">
-        </div>
-
-        <!-- Right Column / Book Info -->
-        <div class="right-column">
-
-            <!-- Book Description -->
-            <div class="book-description">
-                <span id="book-publisher"></span>
-                <h1 id="book-title"></h1>
-                <p id="book-pub-year"></p>
-                <p id="book-isbn"></p>
-                <p id="book-avg-rating"></p>
-                <form action="#" id="rate-form">
-                    <label for="rate">Your Rating?</label>
-                    <input type="number" id="rate" name="rate" min="0" max="10" required>
-                    <input type="submit">
-                </form>
+    <main id="main">
+        <div class="container">
+            <!-- Left Column / Book Cover -->
+            <div class="left-column">
+                <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg" id="book" isbn="{{isbn}}">
             </div>
-            <div class="book-author">
-                <span>Author</span>
-                <img src="" alt="" id="author">
+
+            <!-- Right Column / Book Info -->
+            <div class="right-column">
+
+                <!-- Book Description -->
+                <div class="book-description">
+                    <span id="book-publisher"></span>
+                    <h1 id="book-title"></h1>
+                    <p id="book-pub-year"></p>
+                    <p id="book-isbn"></p>
+                    <p id="book-avg-rating"></p>
+                    <form action="#" id="rate-form">
+                        <label for="rate">Your Rating?</label>
+                        <input type="number" id="rate" name="rate" min="0" max="10" required>
+                        <input type="submit">
+                    </form>
+                </div>
+                <div class="book-author">
+                    <span>Author</span>
+                    <img src="" alt="" id="author">
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="reviews container-fluid flex-row-reverse">
-        <div class="row w-100">
-            <table style="max-height:90%; color: #eee;" class="table table-condensed table-responsive">
-                <thead>
-                    <tr>
-                        <th style="width:15%">User ID</th>
-                        <th style="width:15%">Review ID</th>
-                        <th style="width:70%">Review</th>
-                    </tr>
-                </thead>
-                <tbody id="reviewBox">
-                </tbody>
-            </table>
+        <div class="reviews container-fluid flex-row-reverse">
+            <div class="row w-100">
+                <table style="max-height:90%; color: #eee;" class="table table-condensed table-responsive">
+                    <thead>
+                        <tr>
+                            <th style="width:15%">User ID</th>
+                            <th style="width:15%">Review ID</th>
+                            <th style="width:70%">Review</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewBox">
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-
+    </main>
     <script src="/javascripts/book.js"></script>
 </body>
