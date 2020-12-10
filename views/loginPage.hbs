@@ -1,55 +1,79 @@
-{{>nav}}
+﻿{{>nav}}
 <html>
-  <head>
+<head>
     <title></title>
-    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
-		<script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
-    	<script src="https://unpkg.com/@popperjs/core@2"></script>
-		<link rel='stylesheet' type='text/css' href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'>
-		<link rel='stylesheet' href='/stylesheets/login.css' />
-  </head>
-  
-	<body>	  
-		<div class='container'>
-		<div class='jumbotron' >
-			<h1> Login Page </h1> <br>
-		<form action="/user/login" method='GET'>
-			<div class='form-group row'>
-				<div class='col-sm-4'></div>
-				<div class='col-sm-4'>
-					<input type='text' placeholder="Username"class='field shadow' id='username' name="username" required>
-				</div>
-			</div>
-			<div class='form-group row'></div>
-				<div class='form-group row'>
-					<div class='col-sm-4'></div>
-					<div class='col-sm-4 '>
-						<input type='password' placeholder="Password" class='field shadow' id='password' name="password" required>
-					</div>
-				</div>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <link rel='stylesheet' type='text/css' href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='/stylesheets/login.css' />
+</head>
 
-			<div class='form-group row'>
-				<div class='col-sm-4'></div>
-				<div class='col-sm-4'>
-					<br>
-					<p style="color:red;"> {{error}} </p>
-				</div>		
-			</div>
-				
-			<div class='form-group row'>
-				<div class='col-sm-4'></div>
-				<div class='col-sm-4'>
-					<button class='cool btn btn-primary btn-block'>Login</button>
-				</div>		
-			</div>
-			<div class='form-group row'>
-				<div class='col-sm-4'></div>
-				<div class='col-sm-4'>				
-					<p>Don't have an account?</p> <a href="/user/register">Click here.</a>
-				</div>
-			</div>
-		</form>
-		</div>
-		</div>
-	</body>
+<body>
+    <div class='container'>
+        <div class='jumbotron'>
+            <h1> Login Page </h1> <br>
+            <form id="loginForm" action="/user/login" method='GET'>
+                <div class='form-group row'>
+                    <div class='col-sm-4'></div>
+                    <div class='col-sm-4'>
+                        <input type='text' placeholder="Username" class='field shadow' id='username' name="username" required>
+                    </div>
+                </div>
+                <div class='form-group row'></div>
+                <div class='form-group row'>
+                    <div class='col-sm-4'></div>
+                    <div class='col-sm-4 '>
+                        <input type='password' placeholder="Password" class='field shadow' id='password' name="password" required>
+                    </div>
+                </div>
+
+                <div class='form-group row'>
+                    <div class='col-sm-4'></div>
+                    <div class='col-sm-4'>
+                        <br>
+                        <p class="text-success"> <span id="errorMessage">{{feedback}}</span> </p>
+                    </div>
+                </div>
+
+                <div class='form-group row'>
+                    <div class='col-sm-4'></div>
+                    <div class='col-sm-4'>
+                        <button class='cool btn btn-primary btn-block' type="submit">Login</button>
+                    </div>
+                </div>
+                <div class='form-group row'>
+                    <div class='col-sm-4'></div>
+                    <div class='col-sm-4'>
+                        <p>Don't have an account?</p> <a href="/user/register">Click here.</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        $("#loginForm").on('submit', function (event) {
+            event.preventDefault();
+            let loginForm = $("#loginForm");
+
+            $.ajax({
+                type: loginForm.attr("method"),
+                url: loginForm.attr("action"),
+                data: loginForm.serialize(),
+                success: function (results, status) {
+                    $("#errorMessage").html("");
+                
+                    if (results.success) {
+                        window.location = window.location.origin
+                    } else {
+                        $("#errorMessage").removeClass("text-success");
+                        $("#errorMessage").html(results.msg).addClass("text-danger");
+                    }
+                }
+            });
+        })
+    </script>
+</body>
 </html>
+
