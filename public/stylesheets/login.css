@@ -19,8 +19,8 @@
     color: Green;
   }
   body{
-  background: rgb(155,251,255);
-  background: linear-gradient(90deg, rgba(155,251,255,1), rgba(223,161,255,1) 100%);
+    background: rgb(105,145,255);
+background: linear-gradient(86deg, rgba(105,145,255,1) 25%, rgba(191,195,255,1) 75%);
   }
   
   .shadow{

@@ -23,7 +23,7 @@ const pool = mysql.createPool(sqlConfig);
  */
 router.get('/login', async function (req, res, next) {
     if (!req.query.username || !req.query.password) {
-        return res.render('loginPage');
+        return res.render('loginPage', {error: ""});
     }
 
     const query = 'SELECT * FROM User WHERE username = ? AND password = ? LIMIT 1;';
@@ -45,10 +45,10 @@ router.get('/login', async function (req, res, next) {
 
     if (Array.isArray(user) && user.length) {
         req.session.user = user[0];
-        return res.json({ success: true });
+        return res.redirect('/');
     } else {
         delete req.session.user;
-        return res.json({ success: false });
+        return res.render('loginPage', {error: "Incorrect credentials."});
     }
 });
 
@@ -67,6 +67,8 @@ router.post('/add', async function (req, res, next) {
     if (!req.body.username || !req.body.password || !req.body.email) {
         return res.json({ failed: "failed" });
     }
+    success = true;
+    message = "";
 
     let username = await crypt.encrypt(req.body.username, KEY);
     let password = await crypt.encrypt(req.body.password, KEY);
@@ -79,17 +81,25 @@ router.post('/add', async function (req, res, next) {
         .catch((err) => {
             if (err === "Username already used" || err === "Invalid Password" || err === "Invalid Username" || err === "Invalid Email") {
                 console.log(err)
+                success = false;
+                message = err;
                 return -1;
             } else {
                 console.log(err)
+                success = false;
                 return -2;
             }
         });
-
-    return res.json({ insertId: insertId });
+    if(!success){
+        return res.render('register', {feedback: message});
+    }
+    else{
+        return res.render('loginPage', {error: "Registration successful."});
+    }
+    
 });
 router.get('/register', function (req, res) {
-    res.render('register');
+    res.render('register', {feedback: ""});
 });
 
 
