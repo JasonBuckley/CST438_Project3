@@ -23,7 +23,9 @@ const pool = mysql.createPool(sqlConfig);
  */
 router.get('/login', async function (req, res, next) {
     if (!req.query.username || !req.query.password) {
-        return res.render('loginPage', {error: ""});
+        let feedback = req.query.feedback ? req.query.feedback : "";
+
+        return res.render('loginPage', {error: "", feedback: feedback});
     }
 
     const query = 'SELECT * FROM User WHERE username = ? AND password = ? LIMIT 1;';
@@ -45,10 +47,10 @@ router.get('/login', async function (req, res, next) {
 
     if (Array.isArray(user) && user.length) {
         req.session.user = user[0];
-        return res.redirect('/');
+        return res.json({ success: true });
     } else {
         delete req.session.user;
-        return res.render('loginPage', {error: "Incorrect credentials."});
+        return res.json({ success: false , msg: "Incorrect Credentials!"});
     }
 });
 
@@ -91,10 +93,9 @@ router.post('/add', async function (req, res, next) {
             }
         });
     if(!success){
-        return res.render('register', {feedback: message});
-    }
-    else{
-        return res.render('loginPage', {error: "Registration successful."});
+        return res.json({success: success, feedback: message});
+    }else{
+        return res.json({success: success, feedback: "Registration successful."});
     }
     
 });
