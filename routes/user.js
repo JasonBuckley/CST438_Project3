@@ -23,7 +23,7 @@ const pool = mysql.createPool(sqlConfig);
  */
 router.get('/login', async function (req, res, next) {
     if (!req.query.username || !req.query.password) {
-        return res.render('loginPage');
+        return res.render('loginPage', {error: ""});
     }
 
     const query = 'SELECT * FROM User WHERE username = ? AND password = ? LIMIT 1;';
@@ -45,10 +45,10 @@ router.get('/login', async function (req, res, next) {
 
     if (Array.isArray(user) && user.length) {
         req.session.user = user[0];
-        return res.json({ success: true });
+        return res.redirect('/');
     } else {
         delete req.session.user;
-        return res.json({ success: false });
+        return res.render('loginPage', {error: "Incorrect credentials."});
     }
 });
 
@@ -67,6 +67,8 @@ router.post('/add', async function (req, res, next) {
     if (!req.body.username || !req.body.password || !req.body.email) {
         return res.json({ failed: "failed" });
     }
+    success = true;
+    message = "";
 
     let username = await crypt.encrypt(req.body.username, KEY);
     let password = await crypt.encrypt(req.body.password, KEY);
@@ -79,17 +81,25 @@ router.post('/add', async function (req, res, next) {
         .catch((err) => {
             if (err === "Username already used" || err === "Invalid Password" || err === "Invalid Username" || err === "Invalid Email") {
                 console.log(err)
+                success = false;
+                message = err;
                 return -1;
             } else {
                 console.log(err)
+                success = false;
                 return -2;
             }
         });
-
-    return res.json({ insertId: insertId });
+    if(!success){
+        return res.render('register', {feedback: message});
+    }
+    else{
+        return res.render('loginPage', {error: "Registration successful."});
+    }
+    
 });
 router.get('/register', function (req, res) {
-    res.render('register');
+    res.render('register', {feedback: ""});
 });
 
 
@@ -265,13 +275,12 @@ async function updateUser(username, password, email, user) {
  * @returns Promise
  */
 async function deleteUser(userId, password, accessLevel = 0) {
-    const query = accessLevel == 0 ? "DELETE FROM User WHERE userId = ? AND password = ?" : "DELETE FROM User WHERE userId = ?";
+    const query = accessLevel == 0 ? "DELETE FROM User WHERE userId = ? AND password = ?" : "DELETE FROM User WHERE userId = ? AND accessLevel != 1";
     const values = accessLevel == 0 ? [userId, password] : [userId];
 
     return new Promise((resolve, reject) => {
         pool.query(query, values, (err, results) => {
             if (err) {
-                req.err = err;
                 reject(err);
             } else {
                 resolve(results.affectedRows);
@@ -285,6 +294,7 @@ async function deleteUser(userId, password, accessLevel = 0) {
 /**
  * Get a specific user's userId by searching there username.
  */
+
 router.get('/get', async function (req, res, next) {
     if (req.session.user.accessLevel != 1) {
         return res.json({ success: false, msg: "access denied" });
@@ -294,8 +304,8 @@ router.get('/get', async function (req, res, next) {
 
     let username = await crypt.encrypt(req.query.username, KEY);
 
-    let userId = await new Promise((resolve, reject) => {
-        const query = "SELECT userId FROM User WHERE username = ? LIMIT 1;";
+    let result = await new Promise((resolve, reject) => {
+        const query = "SELECT userId, accessLevel FROM User WHERE username = ? LIMIT 1;";
         const values = [username];
 
         pool.query(query, values, (err, results) => {
@@ -303,9 +313,9 @@ router.get('/get', async function (req, res, next) {
                 reject(err);
             } else {
                 if (Array.isArray(results) && results.length) {
-                    resolve(results[0].userId);
+                    resolve({ userId: results[0].userId });
                 } else {
-                    resolve(-1);
+                    resolve({ userId: -1, msg: "Username Not Found!"});
                 }
             }
         });
@@ -313,7 +323,7 @@ router.get('/get', async function (req, res, next) {
         return -1;
     });
 
-    return res.json({ userId: userId });
+    return res.json(result);
 });
 
 /**
@@ -329,9 +339,10 @@ router.delete('/ban', async function (req, res, next) {
     let affectedRows = await deleteUser(req.body.userId, null, req.session.user.accessLevel)
         .catch((err) => {
             console.log(err);
+            return -1;
         });
 
-    return res.json({ success: affectedRows > -1 });
+    return res.json({ success: affectedRows > 0, msg: affectedRows > 0 ? " has been removed" : "If you tried to ban an admin you can't!"});
 });
 
 
@@ -361,6 +372,43 @@ router.get('/getUserId', function (req, res, next) {
     }
 
     return res.json({ success: true, userId: req.session.user.userId });
+});
+
+/**
+ * Given a userId it gets there username.
+ */
+router.get('/getUsername', async function (req, res, next) {
+    if (!req.query.userId) {
+        return res.json({ success: false, msg: "failed! Need a userId!" });
+    }
+
+    let encryptUsername = await new Promise((resolve, reject) => {
+        let query = "Select username from User WHERE userId = ? LIMIT 1;";
+        let values = [req.query.userId];
+
+        pool.query(query, values, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                if (Array.isArray(results) && results.length) {
+                    resolve(results[0].username);
+                } else {
+                    resolve(-1);
+                }
+            }
+        });
+    }).catch((err) => {
+        return -1;
+    });
+
+    if (encryptUsername == -1) {
+        return res.json({ username: "unknown" });
+    }
+
+    let username = (await crypt.decrypt(encryptUsername, KEY)).toString('utf-8');
+    delete encryptUsername;
+
+    return res.json({ success: true, username: username });
 });
 
 module.exports = router;

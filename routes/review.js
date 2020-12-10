@@ -120,7 +120,9 @@ router.post('/add-rating', async function(req, res) {
  */
 router.get('/get-review', async function(req, res) {
     let query = "SELECT * FROM Review WHERE ";
+
     console.log("debug", req.query); 
+
     if (req.query.reviewId) {
         query += "reviewId = ?";
         let reviews = await dbQuery(query, req.query.reviewId);
@@ -147,7 +149,7 @@ router.get('/get-rating', async function(req, res) {
         let query = "SELECT rating FROM Rating WHERE userId = ? AND bookId = ? LIMIT 1;";
         let values = [req.query.userId, req.query.bookId]
         let rating = await dbQuery(query, values);
-        return res.json({ rating: rating[0].rating });
+        return res.json({ rating: rating });
         
     } else if (req.query.userId) {
         // Get all ratings made by a given user

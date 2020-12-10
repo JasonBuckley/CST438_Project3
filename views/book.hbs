@@ -1,90 +1,6 @@
 <head>
-    <link rel="title icon" type="image/png" href="./images/book.ico" />
-    <style>
-        /* styles for book container */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 15px;
-            display: flex;
-            /*padding-bottom: 450px;*/
-            border: 1px solid #e1e8ee;
-        }
-
-        /* styles for columns */
-        .left-column {
-            width: 65%;
-            position: relative;
-        }
-
-        .right-column {
-            width: 35%;
-            margin-top: 60px;
-        }
-
-        /* styles left column */
-        .left-column img {
-            /*width: 100%;*/
-            position: absolute;
-            left: 0;
-            top: 0;
-        }
-
-        /* styles for book description */
-        .book-description {
-            border-bottom: 1px solid #e1e8ee;
-            margin-bottom: 20px;
-        }
-
-        .book-description span {
-            font-size: 12px;
-            color: #2196f3;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            text-decoration: none;
-        }
-
-        .book-description h1 {
-            font-weight: 300;
-            font-size: 52px;
-            color: #43484d;
-            letter-spacing: -2px;
-        }
-
-        .book-description p {
-            font-size: 16px;
-            font-weight: 300;
-            color: #86939e;
-            line-height: 24px;
-        }
-
-        .book-author {
-            display: flex;
-            align-items: center;
-        }
-
-        .book-author span {
-            font-size: 26px;
-            font-weight: 300;
-            color: #43474d;
-            margin-right: 20px;
-        }
-
-        .book-author img {
-            border-radius: 50%;
-        }
-
-        /* styles for review container */
-        .reviews {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 15px;
-            display: flex;
-            border: 1px solid #e1e8ee;
-        }
-    </style>
+    <link rel='stylesheet' href='/stylesheets/book.css' />
 </head>
-
 
 <body>
     {{>nav}}
@@ -104,6 +20,12 @@
                 <h1 id="book-title"></h1>
                 <p id="book-pub-year"></p>
                 <p id="book-isbn"></p>
+                <p id="book-avg-rating"></p>
+                <form action="#" id="rate-form">
+                    <label for="rate">Rate (between 0 and 10):</label>
+                    <input type="number" id="rate" name="rate" min="0" max="10" required>
+                    <input type="submit">
+                </form>
             </div>
             <div class="book-author">
                 <span>Author</span>
@@ -113,22 +35,21 @@
     </div>
 
     <div class="reviews container-fluid flex-row-reverse">
-
         <div class="row w-100">
-            <table style="max-height:90%" id="shoppingCart" class="table table-condensed table-responsive">
+            <table style="max-height:90%; color: #eee;" class="table table-condensed table-responsive">
                 <thead>
                     <tr>
                         <th style="width:15%">User ID</th>
                         <th style="width:15%">Review ID</th>
-                        <th style="width:55%">Review</th>
-                        <th style="width:15%">Rating</th>
+                        <th style="width:70%">Review</th>
                     </tr>
                 </thead>
                 <tbody id="reviewBox">
                 </tbody>
             </table>
         </div>
-</body>
+
+
 
 <script>
     $(document).ready(function () {
@@ -283,5 +204,7 @@
             return;
         }
     });
-
-</script>
+    </script>
+    
+    <script src="/javascripts/book.js"></script>
+</body>

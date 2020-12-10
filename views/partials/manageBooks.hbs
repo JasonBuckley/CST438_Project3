@@ -1,4 +1,13 @@
-<table style="max-width:100vw" class="p-5 table table-condensed table-responsive">
+<div class="row d-flex justify-content-center">
+    <div class="input-group mb-3 w-50">
+        <div class="input-group-prepend">
+            <button id="searchBook" class="btn btn-info btn-rounded" type="button">search</button>
+        </div>
+        <input id="searchBookKey" type="text" class="form-control" placeholder="title">
+    </div>
+</div>
+
+<table style="max-width:100vw" class="pl-5 pr-5 table table-condensed table-responsive">
     <thead>
         <tr>
             <th style="width:30vw">Cover</th>
@@ -79,10 +88,13 @@
 <script>
     populateBooks();
     function populateBooks() {
-        $("#bookContainer").empty();
+        searchbooks("");
+    }
 
+    function searchbooks(key) {
+        $("#bookContainer").empty();
         $.ajax({
-            url: "/book",
+            url: "/book?search=" + key,
             method: "GET",
             dataType: "json",
             success: function (results, status) {
@@ -92,6 +104,10 @@
             }
         });
     }
+
+    $("#searchBook").on('click', function () {
+        searchbooks($("#searchBookKey").val());
+    });
 
     function createBookDiv(book) {
         let img = book.coverSmallImg == "None" ? `<p>Cover img of ${book.name}</p>` : `<img src="${book.coverSmallImg}" alt="Cover img of ${book.name}" class="img-fluid mb-2 shadow">`
