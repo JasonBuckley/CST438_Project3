@@ -146,6 +146,27 @@ router.get("/", async function (req, res, next) {
 });
 
 /**
+ * Gets all genres in the database and sends them as a list.
+ */
+router.get('/allGenres', async function (req, res) {
+    let query = 'SELECT * FROM Genre LIMIT 100;';
+
+    let genres = await new Promise((resolve, reject) => {
+        pool.query(query, function (err, results) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
+    }).catch((err) => {
+        return [];
+    });
+
+    return res.json(genres);
+});
+
+/**
  * Adds a book, and its genres given a valid isbn number.
  */
 router.post("/add", async function (req, res, next) {
@@ -403,6 +424,8 @@ async function getGenresFromSubjects(subjects) {
                     }
                 }
             }
+        } else {
+            bookGenres.push(GENRES[GENRES.findIndex(obj => obj.genre == "None")].genreId);
         }
 
         resolve(bookGenres);
