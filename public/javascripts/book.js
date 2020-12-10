@@ -47,20 +47,28 @@ $(document).ready(async function () {
     let author_img = searchResults.authors ? `http://covers.openlibrary.org/a/olid/${searchResults.authors[0]["key"].split("/")[2]}-S.jpg` : "../../images/blank-profile.jpg";
     $("#author").attr({ "src": author_img });
 
+    let beenRated = false;
+
     // If this book is in our db gather reviews and avg rating
     if (bookId != 0) {
-       
+       // Should probably make synchronous
         getAvgRating(bookId).then((result) => {
             console.log("Average rating: ", result.avg_rating[0].avg_rating);
             if (result != null) {
-                document.getElementById("rate").value = `${result.avg_rating[0].avg_rating}`;
                 $("#book-avg-rating").html(`Average Rating: ${result.avg_rating[0].avg_rating}/10`);
             }
         });
-        // ========================= LEFT OFF HERE ============================================
+        
+        // If user is logged in check to see if this book 
+        // has been previously rated, if so populate rate input
         if (loggedIn) {
             let userRating = await getUserRating(userId, bookId);
-            console.log(`User rating for this book: ${userRating}`);
+            if (userRating.rating.length != 0) {
+                beenRated = true;
+                console.log(`User rated this book: ${userRating.rating[0].rating}/10`);
+                document.getElementById("rate").value = `${userRating.rating[0].rating}`;
+            }
+            
         }
     }
 
@@ -83,18 +91,27 @@ $(document).ready(async function () {
                bookId = bookAdded.bookId;
                let bookRated = await addRating(new_isbn, rating);
                console.log(bookRated);
-               //location.reload();
+               location.reload();
                 
             } else {
                 alert(`Error adding book with ISBN: ${old_isbn}`)
             }
             return;
+        } 
+
+         // Check if the user already rated the book, if so update it, if not add it
+        if (!beenRated) {
+            let bookRated = await addRating(new_isbn, rating);
+            console.log(bookRated);
+            location.reload();
+        } else {
+            let updateReview = await updateUserRating(bookId, rating);
+            if (updateReview.success) {
+                location.reload();
+            } else {
+                alert("Error updating rating");
+            }
         }
-        // let rating = await getUserRating(userId, bookId)
-        // console.log(rating.rating[0].rating);
-
-        // Else check if the user already rated the book, if so update it
-
     });
 });
 
@@ -162,6 +179,10 @@ function getAvgRating(bookId) {
     });
 }
 
+/**
+ * Calls user API that retrieves user ID of a logged in user
+ * @returns JSON Array
+ */
 function getUserId() {
     return $.ajax({
         url: `/user/getUserId`,
@@ -173,6 +194,12 @@ function getUserId() {
     });
 }
 
+/**
+ * Calls review API that retrieves the rating for a book given a valid userId and bookId
+ * @param userId
+ * @param bookId
+ * @returns JSON Array
+ */
 function getUserRating(userId, bookId) {
     return $.ajax({
         url: `/review/get-rating?userId=${userId}&bookId=${bookId}`,
@@ -184,6 +211,29 @@ function getUserRating(userId, bookId) {
     });
 }
 
+/**
+ * Calls review API that updates the rating for a book given a valid bookId and rating value
+ * @param bookId
+ * @param rating
+ * @returns JSON Array
+ */
+function updateUserRating(bookId, rating) {
+    return $.ajax({
+        url: `/review/update-rating`,
+        method: "PUT",
+        dataType: "json",
+        data: {"bookId": bookId, "rating": rating},
+        success: function (result, status) {
+            return result;
+        }
+    });
+}
+
+/**
+ * Calls book API that adds a book to the db given a valid ISBN
+ * @param isbn
+ * @returns JSON Array
+ */
 function addBook(isbn) {
     return $.ajax({
         url: `/book/add`,
@@ -196,6 +246,12 @@ function addBook(isbn) {
     });
 }
 
+/**
+ * Calls review API that adds a rating to a book given a valid isbn and rating value
+ * @param isbn
+ * @param rating
+ * @returns JSON Array
+ */
 function addRating(isbn, rating) {
     return $.ajax({
         url: `/review/add-rating`,
@@ -228,4 +284,3 @@ function createFrameDiv(review) {
         `
     );
 }
-
