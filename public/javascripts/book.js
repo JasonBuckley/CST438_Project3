@@ -1,14 +1,5 @@
 $(document).ready(async function () {
-    // Setting global variables: isbn, bookId, userId
-    let isbn = $("#book").attr("isbn");
-
-    let bookId = await getBook(isbn);
-    if (bookId.length == 0) {
-        // book is not in db add it
-        bookId = 0;
-    } else {
-        bookId = bookId[0].bookId;
-    }
+    let old_isbn = $("#book").attr("isbn");
 
     let loggedIn = await getUserId();
     let userId = 0;
@@ -18,49 +9,43 @@ $(document).ready(async function () {
     } else {
         loggedIn = false;
     }
+    console.log(`Logged In: ${loggedIn}, User ID: ${userId}`);
 
-    console.log("Book ID: ", bookId);
-    console.log("User ID: ", userId);
+    let searchResults = await searchByISBN(old_isbn);
+    console.log(`Search results for book with ISBN: ${old_isbn}: `, searchResults);
 
-    
+    // Old ISBN may not be present in db, reference using ISBN10/13 instead
     let new_isbn = 0;
+    if (searchResults.isbn_10) {
+        new_isbn = searchResults.isbn_10[0];
+    } else if (searchResults.isbn_13) {
+        new_isbn = searchResults.isbn_13[0];
+    }
+
+    console.log(`Old ISBN: ${old_isbn}, New ISBN: ${new_isbn}`);
+
+    let searchBook = await getBook(new_isbn);
+    let bookId = 0;
+    if (searchBook.length != 0) {
+        bookId = searchBook[0].bookId;
+    }
+    console.log(`Resulting bookId after searching db for book with matching ISBN of ${new_isbn}: `, bookId);
+    
     // Fill out page with matching attributes with 
     // the information gathered by the third party API
-    searchByISBN(isbn).then((result) => {
-        console.log(result);
+    let title = searchResults.title;
+    $("#book-title").html(`${title}`);
 
-        if (result.isbn_10) {
-            new_isbn = result.isbn_10[0];
-        } else if (result.isbn_13) {
-            new_isbn = result.isbn_13[0];
-        }
+    let publisher = searchResults.publishers[0];
+    $("#book-publisher").html(`Publisher: ${publisher}`);
 
-        console.log("Confirming isbn: ", new_isbn);
+    let publish_year = searchResults.publish_date;
+    $("#book-pub-year").html(`Published: ${publish_year}`);
 
-        getBook(new_isbn).then((result) => {
-            if (result.length == 0) {
-                // book is not in db
-                bookId = 0;
-            } else {
-                bookId = result[0].bookId;
-                console.log("New bookId: ", bookId);
-            }
-        });
+    $("#book-isbn").html(`ISBN: ${old_isbn}`);
 
-        let title = result.title;
-        $("#book-title").html(`${title}`);
-
-        let publisher = result.publishers[0];
-        $("#book-publisher").html(`Publisher: ${publisher}`);
-
-        let publish_year = result.publish_date;
-        $("#book-pub-year").html(`Published: ${publish_year}`);
-
-        $("#book-isbn").html(`ISBN: ${isbn}`);
-
-        let author_img = result.authors ? `http://covers.openlibrary.org/a/olid/${result.authors[0]["key"].split("/")[2]}-S.jpg` : "../../images/blank-profile.jpg";
-        $("#author").attr({ "src": author_img });
-    });
+    let author_img = searchResults.authors ? `http://covers.openlibrary.org/a/olid/${searchResults.authors[0]["key"].split("/")[2]}-S.jpg` : "../../images/blank-profile.jpg";
+    $("#author").attr({ "src": author_img });
 
     // If this book is in our db gather reviews and avg rating
     if (bookId != 0) {
@@ -95,7 +80,7 @@ $(document).ready(async function () {
 
         // If bookId == 0, then book is not in db thus not ratings are present, add book, get bookId, add rating
         if (bookId == 0) {
-            let bookAdded = await addBook(isbn);
+            let bookAdded = await addBook(old_isbn);
             console.log("Book added? ", bookAdded);
             if (bookAdded.success) {
                bookId = bookAdded.bookId;
@@ -104,7 +89,7 @@ $(document).ready(async function () {
                //location.reload();
                 
             } else {
-                alert(`Error adding book with ISBN: ${isbn}`)
+                alert(`Error adding book with ISBN: ${old_isbn}`)
             }
             return;
         }
