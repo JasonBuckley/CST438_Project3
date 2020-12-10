@@ -38,29 +38,13 @@
         </div>
 
         <div id="manageUsers" class="hide">
-            <h1 class="center">Search a user to ban!</h1>
-            <p class="center">(Use with caution. "With Great power comes responsibility"</p>
-
-            <div class="row d-flex justify-content-center">
-                <div class="input-group mb-3 w-50">
-                    <div class="input-group-prepend">
-                        <button id="searchUser" class="btn btn-info btn-rounded" type="button">search</button>
-                    </div>
-                    <input id="searchUserKey" type="text" class="form-control" placeholder="title">
-                </div>
-            </div>
-
-            <div class="center">
-                <div id="userContainer">
-
-                </div>
-            </div>
+            {{>manageUsers}}
         </div>
 
         <div id="manageBooks" class="hide">
             {{>manageBooks}}
         </div>
-
+            
         <div id="manageReviews" class="hide">
 
         </div>
@@ -116,49 +100,6 @@
         lastButton = $('#manageReviewsBtn').attr('id');
         $('#manageReviewsBtn').removeClass('btn-secondary').addClass('btn-primary');
         $('#manageReviews').removeClass('hide');
-    });
-
-    $("#searchUser").on('click', function () {
-        if ($("#searchUserKey").val()) {
-            $.ajax({
-                url: "/user/get?username=" + $("#searchUserKey").val(),
-                method: "get",
-                dataType: "json",
-                success: function (results, status) {
-                    $("#userContainer").empty();
-                    if (results.userId > -1) {
-                        $("#userContainer").append(
-                            `<h2>${$("#searchUserKey").val()} <button id="banUser" class="btn btn-danger">Ban</button></h2>`
-                        );
-
-                        $("#banUser").on('click', function () {
-                            $.ajax({
-                                url: "/user/ban",
-                                method: "delete",
-                                dataType: "json",
-                                data: { userId: results.userId },
-                                success: function (results, status) {
-                                    $("#userContainer").empty();
-                                    if (results.success) {
-                                        $("#userContainer").append(
-                                            `<h2 class=" text-success">${$("#searchUserKey").val()}${results.msg}</h2>`
-                                        );
-                                    } else {
-                                        $("#userContainer").append(
-                                            `<h2 class=" text-danger">${results.msg}</h2>`
-                                        );
-                                    }
-                                }
-                            });
-                        });
-                    } else {
-                        $("#userContainer").append(
-                            `<h2>${results.msg}</h2>`
-                        );
-                    }
-                }
-            });
-        }
     });
 </script>
 
