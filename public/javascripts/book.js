@@ -49,8 +49,6 @@ $(document).ready(async function () {
 
     // If this book is in our db gather reviews and avg rating
     if (bookId != 0) {
-     
-
        
         getAvgRating(bookId).then((result) => {
             console.log("Average rating: ", result.avg_rating[0].avg_rating);
@@ -59,12 +57,11 @@ $(document).ready(async function () {
                 $("#book-avg-rating").html(`Average Rating: ${result.avg_rating[0].avg_rating}/10`);
             }
         });
-        // getReviews(bookId).then((result) => {
-        //     console.log(result.reviews);
-        //     result.reviews.forEach((review) => {
-        //         createFrameDiv(review);
-        //     });
-        // });
+        // ========================= LEFT OFF HERE ============================================
+        if (loggedIn) {
+            let userRating = await getUserRating(userId, bookId);
+            console.log(`User rating for this book: ${userRating}`);
+        }
     }
 
     $("#rate-form").submit(async function(event) {
