@@ -321,7 +321,7 @@ router.get('/get', async function (req, res, next) {
             }
         });
     }).catch((err) => {
-        return -1;
+        return { userId: -1, msg: "Username Not Found!"};
     });
 
     return res.json(result);
