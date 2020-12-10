@@ -33,6 +33,26 @@
             </div>
         </div>
     </div>
+    <div class="center" id="review section" name="reviews">
+    {{!--<form name="commentBox" action="/review/add" method="post">--}}
+        <div>
+            <textarea class="cbox" id="review" name="review">Click here to comment!</textarea>
+
+        </div>
+        <div class="btn">
+
+            <input id="reviewSubmit" type="submit" value="Submit" name="reviewSubmit">
+            
+            <span class="hideMe">
+                <p class="center">Debug Box:</p>
+                Rating:  <input id="rating" value="0" name="rating">
+                BookID:  <input id="bookId" value="{{book.bookId}}" >
+                BookISBN:<input id="isbn" value="{{isbn}}" name="isbn">
+            </span>
+        </div>
+    {{!--</form>--}}
+
+</div>
 
     <div class="reviews container-fluid flex-row-reverse">
         <div class="row w-100">
@@ -42,6 +62,7 @@
                         <th style="width:15%">User ID</th>
                         <th style="width:15%">Review ID</th>
                         <th style="width:70%">Review</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody id="reviewBox">
@@ -55,15 +76,18 @@
     $(document).ready(function () {
         /*global $*/
         function getUID(){
-            $.ajax({
-            url: `/user/getUserId`,
-            method: "GET",
-            dataType: "json",
-            success: function (result, status) {
-                return result;
-            }
-        });
-        }
+            return $.ajax({
+                url: `/user/getUserId`,
+                method: "GET",
+                dataType: "json",
+                success: function (result) {
+                    console.log("ressss", result);
+                    return result;
+                }
+            });
+        }//end get
+        //var UID = getUID();
+        
         let isbn = $("#book").attr("isbn");
 
         let book = searchByISBN(isbn).then((result) => {
@@ -86,16 +110,18 @@
         });
 
         getBook(isbn).then(async(result) => {
-            console.log(result);
+            console.log("RESULT IS >>>>>>",result);
             const { bookId } = result[0];
             console.log(bookId);
             let data = await getUID();
+            console.log("tester>>>> ", data);
             let userId = data.success ? data.userId : -1;
-            
+            console.log("debug statement>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", userId);
             getReviews(bookId).then((result) => {
                 console.log(result.reviews);
                 result.reviews.forEach((review) => {
-                    createFrameDiv(review);
+                    // console.log("TEST3------->",review);
+                    createFrameDiv(review, userId);
                 });
             });
         });
@@ -125,8 +151,9 @@
     }
 
     function getReviews(bookId) {
+        console.log("REVIEWS ARE HERE");
         return $.ajax({
-            url: `/review/get?bookId=${bookId}`,
+            url: `/review/get-review?bookId=${bookId}`,
             method: "GET",
             dataType: "json",
             success: function (result, status) {
@@ -135,9 +162,11 @@
         });
     }
 
-    function createFrameDiv(review, user) {
+    function createFrameDiv(review, UID) {
+        //console.log("=============================================");
         $("#reviewBox").append(
             `
+            
             <tr>
                 <td>
                     <p>${review.userId}</p>
@@ -159,21 +188,38 @@
         
             `
         );
-        if(user.userId == review.userId){
-            $(`#buttons$[review.reviewId]`).append(
+        if(UID == review.userId){
+            //console.log("user id if test ------>>>");
+            $(`#buttons${review.reviewId}`).append(
                 `
-                <button id="deleteButton">Delete</button><br>
-                <button id="editButton">Delete</button><br>
+                <button id="deleteButton${review.reviewId}" name="deleteButton" >Delete</button><br>
+                <button id="editButton${review.reviewId}" name="editButton" >Edit</button><br>
                 
                 `
                 );
         }
         
-    }
+    }//end create frame
     
-    function deleteB(review, user){
+    $('#reviewSubmit').on("click", function(){
+        $.ajax({
+            type        : 'POST',
+            url         : '/review/add-review',
+            dataType    : 'json',
+            data: { isbn:$('#isbn').val(), review:$('#review').val() },
+            success: function(data){
+                alert('Submit successful, thank you for your comment!');
+                console.log(data); 
+            }
+            
+      });//end ajax call
+      
+    
+    });//end submit button 
+    
+    function deleteB(review, UID){
         
-        if(review.userId == user.userId){
+        if(review.userId == UID){
              return $.ajax({
                 url:`/review/delete-review`, 
                 method:"DELETE",
@@ -203,7 +249,9 @@
             console.log("review.userID does not match user.userID", );
             return;
         }
+    
     });
+    
     </script>
     
     <script src="/javascripts/book.js"></script>

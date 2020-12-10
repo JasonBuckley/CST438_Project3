@@ -20,6 +20,7 @@ const pool = mysql.createPool(sqlConfig);
  */
 router.post('/add-review', async function(req, res) {
     // Ensure a user is logged in and the proper parameters are presen
+    console.log("add results",req.body);
     if (!req.session.user) {
         return res.redirect("/user/login");
     } else if (!req.body.isbn && !req.body.review) {
@@ -43,8 +44,8 @@ router.post('/add-review', async function(req, res) {
         review: req.body.review
     };
 
-    query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, CURDATE(), ?);';
-    values = [data.userId, data.bookId, data.review, 3];
+    query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, CURDATE());';
+    values = [data.userId, data.bookId, data.review];
 
     let result = await dbQuery(query, values).catch((err) => {
         console.log(err);
