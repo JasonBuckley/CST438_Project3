@@ -125,12 +125,21 @@ describe('User Backend Tests:', function () {
                 method: 'GET',
             };
 
+            let optionsUserId = {
+                hostname: 'localhost',
+                port: 3000,
+                path: '/user/getUserId',
+                method: 'GET',
+            };
+
             let resp = await request(options);
             assert.equal(true, resp.success);
 
             options.path = '/user/logout'
-            let resp2 = await request(options);
-            assert.equal(true, resp2.success);
+            await request(options, null, false, false);
+            let resp2 = await request(optionsUserId);
+            console.log(resp2);
+            assert.equal(false, resp2.success);
         });
     });
 
