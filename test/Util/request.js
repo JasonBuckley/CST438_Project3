@@ -9,7 +9,7 @@ const http = require("http");
  * @param {JSON} body
  * @param {boolean} needHeader
  */
-function request(options, body, needHeader) {
+function request(options, body, needHeader, parse=true) {
     return new Promise((resolve, reject) => {
         let req = http.request(options, (res) => {
             let body = "";
@@ -23,11 +23,15 @@ function request(options, body, needHeader) {
                     reject("Call to api end point has failed with response code " + res.statusCode);
                 } else {
                     try {
-                        let data = JSON.parse(body);
-                        if (needHeader) {
-                            resolve({ data: data, headers: res.headers['set-cookie'] });
+                        if (parse) {
+                            let data = JSON.parse(body);
+                            if (needHeader) {
+                                resolve({ data: data, headers: res.headers['set-cookie'] });
+                            } else {
+                                resolve(data);
+                            }
                         } else {
-                            resolve(data);
+                            resolve();
                         }
                     } catch (e) {
                         reject('Error parsing JSON!');
