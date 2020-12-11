@@ -180,19 +180,19 @@ router.put('/update-review', async function(req, res) {
     } else if (!req.body.reviewId && !req.body.review) {
         return res.json({ success: false });
     }
+    console.log("update-review debug", req.body);
+     let reviewId = req.body.reviewId;
+    // let query = "SELECT * FROM Review WHERE reviewId = ? LIMIT 1;";
+    //let review = await dbQuery(query, reviewId);
 
-    let reviewId = req.body.reviewId;
-    let query = "SELECT * FROM Review WHERE reviewId = ? LIMIT 1;";
-    let review = await dbQuery(query, reviewId);
-
-    if (!review[0]) {
-        return res.json({ success: false });
-    }
+    // if (!review[0]) {
+    //     return res.json({ success: false });
+    // }
 
     let reviewText = req.body.review;
 
-    query = 'UPDATE Review SET review = ? WHERE reviewId = ?;';
-    const values = [reviewText, review[0].reviewId];
+    let query = 'UPDATE Review SET review = ? WHERE reviewId = ?;';
+    const values = [reviewText, req.body.reviewId];
 
     let result = await dbQuery(query, values);
 
@@ -231,7 +231,7 @@ router.put('/update-rating', async function(req, res) {
  */
 router.delete('/delete-review', async function(req, res) {
     // Ensure a user is logged in and all required parameters are present
-    
+    console.log("BODYYYYYYYYY",req.body);
     if (!req.session.user) {
         return res.redirect("/user/login");
     } else if (!req.body.reviewId || !req.body.userId || !req.body.bookId || !req.body.review) {

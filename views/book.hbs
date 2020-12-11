@@ -69,8 +69,28 @@
                 </tbody>
             </table>
         </div>
+    </div>
 
-
+<div id="modall" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Comment </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <textarea id="reviewEdit">Input here</textarea>
+        <input class="hideMe" name="reviewID" id="reviewID" value="">
+      </div>
+      <div class="modal-footer">
+        <button id="saveEdit" type="button" class="btn btn-primary" data-dismiss="modal">Save changes</button>
+        <button id="closeEdit" type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
     $(document).ready(function () {
@@ -86,8 +106,9 @@
                 }
             });
         }//end get
-        //var UID = getUID();
         
+        //var UID = getUID();
+        let UUID  = getUID(); 
         let isbn = $("#book").attr("isbn");
 
         let book = searchByISBN(isbn).then((result) => {
@@ -120,13 +141,14 @@
             getReviews(bookId).then((result) => {
                 console.log(result.reviews);
                 result.reviews.forEach((review) => {
-                    // console.log("TEST3------->",review);
+                    console.log("TEST3------->");
                     createFrameDiv(review, userId);
+                    
                 });
             });
         });
         
-    });
+   
 
     function searchByISBN(isbn) {
         return $.ajax({
@@ -166,8 +188,7 @@
         //console.log("=============================================");
         $("#reviewBox").append(
             `
-            
-            <tr>
+            <tr id="review${review.reviewId}">
                 <td>
                     <p>${review.userId}</p>
                 </td>
@@ -175,10 +196,7 @@
                     <p>${review.reviewId}</p>
                 </td>
                 <td>
-                    <p>${review.review}</p>
-                </td>
-                <td>
-                    <p>${review.rating}</p>
+                    <p id="reviewCol${review.reviewId}">${review.review}</p>
                 </td>
                 <td id="buttons${review.reviewId}">
                 
@@ -192,12 +210,61 @@
             //console.log("user id if test ------>>>");
             $(`#buttons${review.reviewId}`).append(
                 `
-                <button id="deleteButton${review.reviewId}" name="deleteButton" >Delete</button><br>
-                <button id="editButton${review.reviewId}" name="editButton" >Edit</button><br>
+                <button id="deleteButton${review.reviewId}" name="deleteButton${review.reviewId}" >Delete</button><br>
+                <button data-toggle="modal" data-target="#modall" id="editButton${review.reviewId}" name="editButton" >Edit</button><br>
                 
                 `
                 );
-        }
+            $(`#deleteButton${review.reviewId}`).on('click', function () {
+                $.ajax({
+                url:`/review/delete-review`, 
+                method:"delete",
+                dataType: "json",
+                data: { reviewId: review.reviewId, userId: review.userId, bookId: review.bookId, review: review.review },
+                success: function (results, status) {
+                    console.log("dele results", results, review);
+                    $(`#review${review.reviewId}`).remove();
+                    return results;
+                    }//end success
+                });//end ajax 
+            });//end delete button fucntio
+            $(`#editButton${review.reviewId}`).on('click',function () {
+                $('#reviewID').val(review.reviewId);
+                $("#reviewEdit").val(review.review);
+            //  return $.ajax({
+            //     url:`/review/update-review`, 
+            //     method:"put",
+            //     dataType: "json",
+            //     data: { reviewId: review.reviewId, userId: review.userId, bookId: review.bookId, review: review.review },
+            //     success: function (results, status) {
+            //         console.log(results);
+            //         // $(`#review${review.reviewId}`).();
+            //         return results;
+            //         }
+            //     }); 
+            });//end edit review
+            $(`#saveEdit`).on('click', function(){
+                $.ajax({
+                url:`/review/update-review`, 
+                method:"put",
+                dataType: "json",
+                data: { reviewId: $('#reviewID').val(), review: $("#reviewEdit").val()},
+                success: function (results, status) {
+                    console.log(results);
+                    // $(`#review${review.reviewId}`).();
+                    let RID = $('#reviewID').val();
+                    let EditVal = $("#reviewEdit").val();
+                    if(results.success){
+                        
+                        $(`#reviewCol${RID}`).html(EditVal);
+                        
+                    }
+                    return results;
+                    }
+                }); 
+            });
+        }//end if
+        
         
     }//end create frame
     
@@ -217,23 +284,49 @@
     
     });//end submit button 
     
-    function deleteB(review, UID){
+    // function deleteB(review, UID){
         
-        if(review.userId == UID){
-             return $.ajax({
-                url:`/review/delete-review`, 
-                method:"DELETE",
-                dataType: "json",
-                success: function(res){
-                    return res; 
-                }
-            }); 
-        }else{
-            console.log("review.userID does not match user.userID", );
-           return;
-        }
-    }
-    $("#deleteButton").on("click", deleteB);
+    //     if(review.userId == UID){
+    //          return $.ajax({
+    //             url:`/review/delete-review`, 
+    //             method:"delete",
+    //             dataType: "json",
+    //             data: { reviewId: review.reviewId, userId: review.userId, bookId: review.bookId, review: review.review },
+    //             success: function (results, status) {
+    //                 console.log(results);
+    //                 $(`#review${review.reviewId}`).remove();
+    //                 return results;
+    //             }
+    //         }); 
+    //     }else{
+    //         console.log("review.userID does not match user.userID", );
+    //       return;
+    //     }
+    // };
+    // // $("#deleteButton").on("click", deleteB);
+    // getReviews(bookId).then((result) =>{
+        
+    // });
+    // let review = (getReviews(book.bookId));
+    // let userId = (await getUserIdFromName().userId); 
+    
+    // console.log(review);
+    
+    // $(`#deleteReview${review.reviewId}`).on('click', function (review, UID) {
+    //          return $.ajax({
+    //             url:`/review/delete-review`, 
+    //             method:"delete",
+    //             dataType: "json",
+    //             data: { reviewId: review.reviewId, userId: review.userId, bookId: review.bookId, review: review.review },
+    //             success: function (results, status) {
+    //                 console.log(results);
+    //                 $(`#review${review.reviewId}`).remove();
+    //                 return results;
+    //             }
+    //         }); 
+    //     
+    //     }
+    // });//end delete button fucntion
     
     $("#editButton").on("click", function editB(review, user){
         if(review.userId == user.userId){
@@ -251,7 +344,7 @@
         }
     
     });
-    
+});//END DOM
     </script>
     
     <script src="/javascripts/book.js"></script>

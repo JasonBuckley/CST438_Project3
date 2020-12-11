@@ -1,3 +1,4 @@
+/*global $*/
 $(document).ready(async function () {
     let old_isbn = $("#book").attr("isbn");
 
@@ -89,7 +90,7 @@ $(document).ready(async function () {
                //location.reload();
                 
             } else {
-                alert(`Error adding book with ISBN: ${old_isbn}`)
+                alert(`Error adding book with ISBN: ${old_isbn}`);
             }
             return;
         }
@@ -214,21 +215,6 @@ function addRating(isbn, rating) {
 /**
  * Populates review box
  */
-function createFrameDiv(review) {
-    $("#reviewBox").append(
-        `
-        <tr>
-            <td>
-                <p>${review.userId}</p>
-            </td>
-            <td>
-                <p>${review.reviewId}</p>
-            </td>
-            <td>
-                <p>${review.review}</p>
-            </td>
-        </tr>
-        `
-    );
-}
+
+
 
