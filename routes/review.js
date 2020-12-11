@@ -202,20 +202,20 @@ router.put('/update-review', async function(req, res) {
 router.put('/update-rating', async function(req, res) {
     if (!req.session.user) {
         return res.redirect("/user/login");
-    } else if (!req.body.bookId && !req.body.oldRating && !req.body.newRating) {
+    } else if (!req.body.bookId && !req.body.rating) {
         return res.json({ success: false });
     }
 
-    let query = "SELECT * FROM Rating WHERE userId = ? AND bookId = ? AND rating = ? LIMIT 1;";
-    let values = [req.session.user.userId, req.body.bookId, req.body.oldRating];
-    let review = await dbQuery(query, reviewId);
+    let query = "SELECT * FROM Rating WHERE userId = ? AND bookId = ? LIMIT 1;";
+    let values = [req.session.user.userId, req.body.bookId];
+    let rating = await dbQuery(query, values);
 
-    if (!review[0]) {
+    if (!rating[0]) {
         return res.json({ success: false });
     }
 
     query = 'UPDATE Rating SET rating = ? WHERE userId = ? AND bookId = ?;';
-    values = [req.body.newRating, req.session.user.userId, req.body.bookId];
+    values = [req.body.rating, req.session.user.userId, req.body.bookId];
 
     let result = await dbQuery(query, values);
 

@@ -49,14 +49,14 @@ describe('User Backend Tests:', function () {
                 console.log(err);
                 return -1;
             });
-            assert.equal(true, resp.insertId > -1);
+            assert.equal(true, resp.success);
 
             let resp2 = await request(options, data).catch((err) => {
                 console.log(err);
                 return -1;
             });
 
-            assert.equal(false, resp2.insertId > -1);
+            assert.equal(false, resp2.success);
 
             // add admin
             let data2 = JSON.stringify({ username: "AdminUser", password: "Password1*", email: "email1@email.com" });
@@ -73,7 +73,7 @@ describe('User Backend Tests:', function () {
             };
 
             let resp3 = await request(options2, data2, false);
-            assert.equal(true, resp3.insertId > -1);
+            assert.equal(true, resp3.success);
 
             await new Promise(async (resolve, reject) => {
                 const key = crypt.getKeyFromPassword(process.env.USER_ENCRYPT_PASSWORD, Buffer.from(process.env.USER_ENCRYPT_SALT));
@@ -209,6 +209,7 @@ describe('User Backend Tests:', function () {
                     console.log(err);
                     return -1;
                 });
+
                 assert.equal(true, resp2.success);
 
                 let resp3 = await request(optionsGet, null, false).catch((err) => {

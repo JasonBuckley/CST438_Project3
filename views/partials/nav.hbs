@@ -240,13 +240,15 @@
     <div class="menu-icon">
         <span class="fa fa-bars"></span>
     </div>
-    <div class="logo"><img src="./images/book.ico" alt="" style="max-height: 30px;"> ODFBC</div>
+    <div class="logo"><img src="../../images/book.ico" alt="" style="max-height: 30px;"> ODFBC</div>
     <div class="nav-items">
         <li><a href="/">Home</a></li>
         <li><a href="reviews">Reviews</a></li>
         {{#if username}}
+
         <li><a href="#">Hi {{username}}</a></li>
         <li><a href="/user/viewAccount">View My Account</a></li>
+
         {{else}}
         <li><a href="/user/login">Sign In</a></li>
         {{/if}}
@@ -267,7 +269,7 @@
     const searchBtn = document.querySelector(".search-icon");
     const cancelBtn = document.querySelector(".cancel-icon");
     const items = document.querySelector(".nav-items");
-    const form = document.querySelector("form");
+    const form = document.querySelector("#search-form");
     menuBtn.onclick = () => {
         items.classList.add("active");
         menuBtn.classList.add("hide");

@@ -1,0 +1,55 @@
+<head>
+    <style>
+        #back-to-top-btn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            z-index: 99;
+            font-size: 18px;
+            border: none;
+            outline: none;
+            background: #2196f3;
+            color: white;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        #back-to-top-btn:hover {
+            background: #0b7dda;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="back-to-top-btn" title="Go to top">
+        <i class="fa fa-chevron-circle-up"></i>
+    </button>
+
+    <script>
+        // functions for revealing the back to top button and implementing the page scroll
+        $("#back-to-top-btn").on("click", backToTop);
+
+        var topButton = document.getElementById("back-to-top-btn");
+
+        // When the user scrolls down 20px from the top of the document, show the button
+        window.onscroll = function () {
+            scrollFunction();
+        };
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                topButton.style.display = "block";
+            } else {
+                topButton.style.display = "none";
+            }
+        }
+
+        // When the user clicks on the button, scroll to the top of the document
+        function backToTop() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+    </script>
+</body>
