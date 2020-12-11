@@ -20,7 +20,7 @@ const pool = mysql.createPool(sqlConfig);
 
 
 router.get('/viewAccount', async function (req, res, next) {
-    res.render('viewAccount');
+    res.render('viewAccount', { username: req.session.username });
 });
 /**
  * Attempts to log a user into the website. Either returns true if successful, or false if unsuccessful.

@@ -18,7 +18,7 @@ const pool = mysql.createPool(sqlConfig);
 
 router.get('/isbn/:isbn', function (req, res, next) {
     const isbn = [req.params.isbn];
-    res.render('book', { isbn: isbn });
+    res.render('book', { isbn: isbn , username: req.session.username});
 });
 
 /**

@@ -254,7 +254,9 @@
         {{/if}}
         <li><a href="#">Genres</a></li>
         
-        <li><a href="#">Option</a></li>
+        {{#if username}}
+        <li><a href="/user/logout">Logout</a></li>
+        {{/if}}
     </div>
     <div class="search-icon"><span class="fa fa-search"></span></div>
     <div class="cancel-icon"><span class="fa fa-times"></span></div>
