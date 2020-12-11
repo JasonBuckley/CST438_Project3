@@ -79,6 +79,16 @@ body {
   border-radius: 50%;
 }
 
+#rate-btn {
+  background: #2196f3;
+  color: white;
+  cursor: pointer;
+}
+
+#rate-btn:hover {
+  background: #0b7dda;
+}
+
 @media (max-width: 980px) {
   .container {
     /* flex-direction: column; */
@@ -116,51 +126,49 @@ body {
   display: flex;
   border: 1px solid #e1e8ee;
 }
-.reviewContainer
-{
-        margin: auto;
-        width: 50%;
-        border: 12px solid black;
-        padding: 10px;
-        border-style:groove;
-        border-width:8px;
-        /*flex:;*/
-} 
-.miniContainer{
-        margin: auto;
-        background-color:navy;
-        /*width: 50%;*/
-        border: 50px solid black;
-        padding: 2px;
-        border-style:dotted;
-        border-width:3px;
-        justify-content:center;
+.reviewContainer {
+  margin: auto;
+  width: 50%;
+  border: 12px solid black;
+  padding: 10px;
+  border-style: groove;
+  border-width: 8px;
+  /*flex:;*/
 }
-.cbox{
-        margin:auto;
-        background:rgba(50, 96, 97, 0.4);
-        width: 600px;
-        height:100px;
-        /*opacity: 0.2;*/
+.miniContainer {
+  margin: auto;
+  background-color: navy;
+  /*width: 50%;*/
+  border: 50px solid black;
+  padding: 2px;
+  border-style: dotted;
+  border-width: 3px;
+  justify-content: center;
 }
-.center{
-    display:flex; 
-    padding:8px;
-    align-items:center;
-    margin-left: auto;
-    margin-right: auto;
-    width: 8em;
-    /*border:2px solid #333;*/
-    /*padding:15px 10px;*/
-    justify-content:center;
+.cbox {
+  margin: auto;
+  background: rgba(50, 96, 97, 0.4);
+  width: 600px;
+  height: 100px;
+  /*opacity: 0.2;*/
 }
-.hideMe{
-  display:none;
+.center {
+  display: flex;
+  padding: 8px;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+  width: 8em;
+  /*border:2px solid #333;*/
+  /*padding:15px 10px;*/
+  justify-content: center;
 }
-#reviewSubmit{
-  background-color:#546ed6;
-  color:white;
+.hideMe {
+  display: none;
+}
+#reviewSubmit {
+  background-color: #546ed6;
+  color: white;
   border: 12px lime;
-  border-width:4px;
-  
+  border-width: 4px;
 }
