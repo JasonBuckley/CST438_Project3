@@ -1,35 +1,37 @@
 <head>
     <link rel='stylesheet' href='/stylesheets/book.css' />
+    <link rel='stylesheet' href='/stylesheets/search.css' />
 </head>
 
 <body>
     {{>nav}}
-
-    <div class="container">
-        <!-- Left Column / Book Cover -->
-        <div class="left-column">
-            <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg" id="book" isbn="{{isbn}}">
-        </div>
-
-        <!-- Right Column / Book Info -->
-        <div class="right-column">
-
-            <!-- Book Description -->
-            <div class="book-description">
-                <span id="book-publisher"></span>
-                <h1 id="book-title"></h1>
-                <p id="book-pub-year"></p>
-                <p id="book-isbn"></p>
-                <p id="book-avg-rating"></p>
-                <form action="#" id="rate-form">
-                    <label for="rate">Rate (between 0 and 10):</label>
-                    <input type="number" id="rate" name="rate" min="0" max="10" required>
-                    <input type="submit">
-                </form>
+    <main id="main">
+        <div class="container">
+            <!-- Left Column / Book Cover -->
+            <div class="left-column">
+                <img src="http://covers.openlibrary.org/b/isbn/{{isbn}}-M.jpg" id="book" isbn="{{isbn}}">
             </div>
-            <div class="book-author">
-                <span>Author</span>
-                <img src="" alt="" id="author">
+
+            <!-- Right Column / Book Info -->
+            <div class="right-column">
+
+                <!-- Book Description -->
+                <div class="book-description">
+                    <span id="book-publisher"></span>
+                    <h1 id="book-title"></h1>
+                    <p id="book-pub-year"></p>
+                    <p id="book-isbn"></p>
+                    <p id="book-avg-rating"></p>
+                    <form action="#" id="rate-form">
+                        <label for="rate">Your Rating?</label>
+                        <input type="number" id="rate" name="rate" min="0" max="10" required>
+                        <input type="submit">
+                    </form>
+                </div>
+                <div class="book-author">
+                    <span>Author</span>
+                    <img src="" alt="" id="author">
+                </div>
             </div>
         </div>
     </div>
@@ -69,7 +71,11 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </main>
+
+    {{>backToTopButton}}
+
+    {{>footer}}
 
 <div id="modall" class="modal" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
@@ -348,4 +354,5 @@
     </script>
     
     <script src="/javascripts/book.js"></script>
+    <script src="/javascripts/search.js"></script>
 </body>

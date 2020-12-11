@@ -16,7 +16,6 @@ body {
   margin: 0 auto;
   padding: 15px;
   display: flex;
-  /*padding-bottom: 450px;*/
   border: 1px solid #e1e8ee;
 }
 
@@ -33,7 +32,7 @@ body {
 
 /* styles left column */
 .left-column img {
-  /*width: 100%;*/
+  width: 220px;
   position: absolute;
   left: 0;
   top: 0;
@@ -78,6 +77,33 @@ body {
 .book-author img {
   max-height: 50px;
   border-radius: 50%;
+}
+
+@media (max-width: 980px) {
+  .container {
+    /* flex-direction: column; */
+    display: block;
+    margin-top: 60px;
+  }
+
+  .left-column,
+  .right-column {
+    width: 100%;
+  }
+
+  .left-column img {
+    width: 200px;
+    right: 0;
+    /* top: -65px; */
+    left: initial;
+  }
+}
+
+@media (max-width: 520px) {
+  .left-column img {
+    width: 200px;
+    /* top: -85px; */
+  }
 }
 
 /* styles for review container */

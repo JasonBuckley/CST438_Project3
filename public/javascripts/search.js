@@ -1,4 +1,8 @@
-$(document).ready(function () {
+// This document's functions are meant for use with the nav bar
+// The perform the search function and replace whatever the 
+// current content of a page is with the search results
+
+$(document).ready(async function () {
     $("#input").focus();
 
     $("#search-form").submit(function(event) {
@@ -20,12 +24,6 @@ $(document).ready(function () {
             }
         });
     });
-    
-
-    getTopFive().then((result) => {
-        console.log("Top 5: ", result);
-        showTopFive(result.res);
-    });
 });
 
 function searchByTitle(title) {
@@ -43,6 +41,9 @@ function searchByTitle(title) {
 function showBooks(books) {
     // clear main
     main.innerHTML = "";
+
+    const searchResults = document.createElement("div");
+    searchResults.classList.add("search-results");
 
     books.forEach((book) => {
         const { author_name, isbn, title } = book;
@@ -63,52 +64,8 @@ function showBooks(books) {
         </div>
         `;
 
-        main.appendChild(bookElement);
+        searchResults.appendChild(bookElement);
     });
-}
-
-function getTopFive() {
-    return $.ajax({
-        type: "GET",
-        url: "/review/top-five-rated",
-        dataType: "json",
-        contentType: "application/json",
-        success: function(result, status) {
-            return result;
-        }
-    });
-}
-
-function showTopFive(books) {
-    // clear main
-    main.innerHTML = "";
-
-    const headerElement = document.createElement("h2");
-    headerElement.classList.add("header");
-    headerElement.innerHTML = `Top 5 Rated Books, Chosen by Users Like You!`;
-    main.appendChild(headerElement);
-
-    books.forEach((book) => {
-        const { bookId, name, ISBN10, ISBN13, avg_rating, coverImg } = book;
-        console.log(bookId, name, ISBN10, ISBN13, avg_rating, coverImg);
-
-        let isbn = ISBN10 == null ? (ISBN13 == null ? "": ISBN13) : ISBN10;
-        console.log(!isbn);
-
-        const bookElement = document.createElement("div");
-        bookElement.classList.add("book");
-
-        bookElement.innerHTML = `
-        <img
-            src="${coverImg}"
-            alt="${name}"
-        />
-        <div class="book-info" isbn=${isbn}>
-            <h3><a href="/book/isbn/${isbn}">${name}</a></h3>
-            <span>${Math.trunc(avg_rating)}/10</span>
-        </div>
-        `;
-
-        main.appendChild(bookElement);
-    });
+    
+    main.appendChild(searchResults);
 }

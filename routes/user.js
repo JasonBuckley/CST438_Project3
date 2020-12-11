@@ -18,12 +18,19 @@ const sqlConfig = {
 // creates a pool to handle query requests.
 const pool = mysql.createPool(sqlConfig);
 
+
+router.get('/viewAccount', async function (req, res, next) {
+    res.render('viewAccount');
+});
 /**
  * Attempts to log a user into the website. Either returns true if successful, or false if unsuccessful.
  */
+
 router.get('/login', async function (req, res, next) {
     if (!req.query.username || !req.query.password) {
-        return res.render('loginPage', {error: ""});
+        let feedback = req.query.feedback ? req.query.feedback : "";
+
+        return res.render('loginPage', {error: "", feedback: feedback});
     }
 
     const query = 'SELECT * FROM User WHERE username = ? AND password = ? LIMIT 1;';
@@ -45,10 +52,15 @@ router.get('/login', async function (req, res, next) {
 
     if (Array.isArray(user) && user.length) {
         req.session.user = user[0];
-        return res.redirect('/');
+
+        req.session.username = (await crypt.decrypt(crypt.arrayToBuffer(user[0].username), KEY)).toString("utf-8");
+        
+        
+        return res.json({ success: true });
+
     } else {
         delete req.session.user;
-        return res.render('loginPage', {error: "Incorrect credentials."});
+        return res.json({ success: false , msg: "Incorrect Credentials!"});
     }
 });
 
@@ -57,7 +69,8 @@ router.get('/login', async function (req, res, next) {
  */
 router.get('/logout', async function (req, res, next) {
     delete req.session.user;
-    return res.json({ success: true });
+    // return res.json({ success: true });
+    return res.redirect("/");
 });
 
 /**
@@ -91,10 +104,9 @@ router.post('/add', async function (req, res, next) {
             }
         });
     if(!success){
-        return res.render('register', {feedback: message});
-    }
-    else{
-        return res.render('loginPage', {error: "Registration successful."});
+        return res.json({success: success, feedback: message});
+    }else{
+        return res.json({success: success, feedback: "Registration successful."});
     }
     
 });
@@ -320,7 +332,7 @@ router.get('/get', async function (req, res, next) {
             }
         });
     }).catch((err) => {
-        return -1;
+        return { userId: -1, msg: "Username Not Found!"};
     });
 
     return res.json(result);
