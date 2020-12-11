@@ -1,42 +1,47 @@
 ﻿{{>nav}}
 <html>
+
 <head>
     <title></title>
     <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
     <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <link rel='stylesheet' type='text/css' href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'>
+    <link rel='stylesheet' type='text/css'
+        href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'>
     <link rel='stylesheet' href='/stylesheets/login.css' />
+    <link rel='stylesheet' href='/stylesheets/search.css' />
 </head>
 
 <body>
-    <div class='container'>
-        <div class='jumbotron'>
-            <h1> About Me </h1> <br>
+    <main id="main">
+        <div class='container'>
+            <div class='jumbotron'>
+                <h1> About Me </h1> <br>
 
-            <div class='form-group row'>
-                <div class='col-sm-4'></div>
-                <div class='col-sm-4'>
-                    <p> Username: <span id="username"></span></p>
+                <div class='form-group row'>
+                    <div class='col-sm-4'></div>
+                    <div class='col-sm-4'>
+                        <p> Username: <span id="username"></span></p>
+                    </div>
                 </div>
-            </div>
-            <div class='form-group row'></div>
-            <div class='form-group row'>
-                <div class='col-sm-4'></div>
-                <div class='col-sm-4 '>
-                    <p>Password: <span id="password"></span></p>
+                <div class='form-group row'></div>
+                <div class='form-group row'>
+                    <div class='col-sm-4'></div>
+                    <div class='col-sm-4 '>
+                        <p>Password: <span id="password"></span></p>
+                    </div>
                 </div>
-            </div>
 
-            <div class='form-group row'>
-                <div class='col-sm-4'></div>
-                <div class='col-sm-4'>
-                    <p>Email: <span id="email"></span></p>
+                <div class='form-group row'>
+                    <div class='col-sm-4'></div>
+                    <div class='col-sm-4'>
+                        <p>Email: <span id="email"></span></p>
+                    </div>
                 </div>
-            </div>
 
+            </div>
         </div>
-    </div>
+    </main>
 
     <script>
         $.ajax({
@@ -49,5 +54,7 @@
             }
         })
     </script>
+    <script src=" ./javascripts/home.js"></script>
 </body>
+
 </html>
