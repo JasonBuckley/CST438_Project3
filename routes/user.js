@@ -20,7 +20,7 @@ const pool = mysql.createPool(sqlConfig);
 
 
 router.get('/viewAccount', async function (req, res, next) {
-    res.render('viewAccount');
+    res.render('viewAccount', { username:  req.session.username, password: req.session.password, email: req.session.email});
 });
 /**
  * Attempts to log a user into the website. Either returns true if successful, or false if unsuccessful.
@@ -53,7 +53,9 @@ router.get('/login', async function (req, res, next) {
     if (Array.isArray(user) && user.length) {
         req.session.user = user[0];
 
-        req.session.username = (await crypt.decrypt(crypt.arrayToBuffer(user[0].username), KEY)).toString("utf-8");
+        req.session.username = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.username), KEY)).toString("utf-8");
+        req.session.password = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.password), KEY)).toString("utf-8");
+        req.session.email = (await crypt.decrypt(crypt.arrayToBuffer(req.session.user.email), KEY)).toString("utf-8");
         
         
         return res.json({ success: true });
