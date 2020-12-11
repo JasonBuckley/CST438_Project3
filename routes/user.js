@@ -59,7 +59,8 @@ router.get('/login', async function (req, res, next) {
  */
 router.get('/logout', async function (req, res, next) {
     delete req.session.user;
-    return res.json({ success: true });
+    // return res.json({ success: true });
+    return res.redirect("/");
 });
 
 /**
