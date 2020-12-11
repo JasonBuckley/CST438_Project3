@@ -17,7 +17,7 @@ function searchByTitle(title) {
           
             response.on('end', () => {  
                 if (response.statusCode != "200") {
-                    reject("Call to api end point has failed with response code " + res.statusCode);
+                    reject("Call to api end point has failed with response code " + response.statusCode);
                 } else {
                     try {
                         const body = JSON.parse(data);
@@ -48,7 +48,7 @@ function searchByISBN(isbn) {
           
             response.on('end', () => {  
                 if (response.statusCode != "200") {
-                    reject("Call to api end point has failed with response code " + res.statusCode);
+                    reject("Call to api end point has failed with response code " + response.statusCode);
                 } else {
                     try {
                         const body = JSON.parse(data);

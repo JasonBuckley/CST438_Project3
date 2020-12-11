@@ -5,6 +5,11 @@ $(document).ready(function () {
         event.preventDefault(); 
 
         let input = $("#input").val();
+        if (input.trim().length == 0) {
+            alert("Nice try, no empty strings allowed!")
+            return;
+        }
+
         let title = input.replace(/\s+/g,'+');
         console.log("Searching for: ", title);
 
