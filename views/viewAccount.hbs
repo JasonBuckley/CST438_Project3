@@ -1,41 +1,53 @@
-{{>nav}}
+﻿{{>nav}}
 <html>
-  <head>
+<head>
     <title></title>
-    <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>
-		<script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
-    	<script src="https://unpkg.com/@popperjs/core@2"></script>
-		<link rel='stylesheet' type='text/css' href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'>
-		<link rel='stylesheet' href='/stylesheets/login.css' />
-  </head>
-  
-	<body>	  
-		<div class='container'>
-		<div class='jumbotron' >
-			<h1> About Me </h1> <br>
-		
-			<div class='form-group row'>
-				<div class='col-sm-4'></div>
-				<div class='col-sm-4'>
-					<p> Username: {{req.session.username}}</p>
-				</div>
-			</div>
-			<div class='form-group row'></div>
-				<div class='form-group row'>
-					<div class='col-sm-4'></div>
-					<div class='col-sm-4 '>
-						<p>Password: {{req.session.password}}</p>
-					</div>
-				</div>
-				
-			<div class='form-group row'>
-				<div class='col-sm-4'></div>
-				<div class='col-sm-4'>
-					<p>Email: {{req.session.password}}</p>
-				</div>		
-			</div>
-		
-		</div>
-		</div>
-	</body>
+    <meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <link rel='stylesheet' type='text/css' href='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='/stylesheets/login.css' />
+</head>
+
+<body>
+    <div class='container'>
+        <div class='jumbotron'>
+            <h1> About Me </h1> <br>
+
+            <div class='form-group row'>
+                <div class='col-sm-4'></div>
+                <div class='col-sm-4'>
+                    <p> Username: <span id="username"></span></p>
+                </div>
+            </div>
+            <div class='form-group row'></div>
+            <div class='form-group row'>
+                <div class='col-sm-4'></div>
+                <div class='col-sm-4 '>
+                    <p>Password: <span id="password"></span></p>
+                </div>
+            </div>
+
+            <div class='form-group row'>
+                <div class='col-sm-4'></div>
+                <div class='col-sm-4'>
+                    <p>Email: <span id="email"></span></p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        $.ajax({
+            url: "/user/",
+            method: "get",
+            success: function (results, status) {
+                $("#username").html(results.username);
+                $("#password").html(results.password);
+                $("#email").html(results.email);
+            }
+        })
+    </script>
+</body>
 </html>
