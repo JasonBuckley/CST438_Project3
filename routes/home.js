@@ -12,9 +12,10 @@ router.get('/admin', function (req, res, next) {
 });
 
 router.get('/', function(req, res, next) {
+    console.log(req.session.username);
     if (req.session.user) {
-        console.log(`Logged in user's username: ${ JSON.stringify(req.session.user.username)}`);
-        res.render("home", { username: req.session.user.username });
+        res.render("home", { username:  req.session.username});
+    
     } else {
         res.render("home");
     }

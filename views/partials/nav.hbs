@@ -245,12 +245,15 @@
         <li><a href="/">Home</a></li>
         <li><a href="reviews">Reviews</a></li>
         {{#if username}}
-        <li><a href="/user/logout">Sign Out</a></li>
+
+        <li><a href="#">Hi {{username}}</a></li>
+        <li><a href="/user/viewAccount">View My Account</a></li>
+
         {{else}}
         <li><a href="/user/login">Sign In</a></li>
         {{/if}}
         <li><a href="#">Genres</a></li>
-        <li><a href="#">Option</a></li>
+        
         <li><a href="#">Option</a></li>
     </div>
     <div class="search-icon"><span class="fa fa-search"></span></div>
