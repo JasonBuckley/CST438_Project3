@@ -12,8 +12,10 @@ router.get('/admin', function (req, res, next) {
 });
 
 router.get('/', function(req, res, next) {
+    console.log(req.session.username);
     if (req.session.user) {
-        res.render("home", { username: req.session.username });
+        
+        res.render("home", { username:  req.session.username});
     } else {
         res.render("home");
     }

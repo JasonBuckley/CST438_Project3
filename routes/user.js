@@ -18,9 +18,14 @@ const sqlConfig = {
 // creates a pool to handle query requests.
 const pool = mysql.createPool(sqlConfig);
 
+
+router.get('/viewAccount', async function (req, res, next) {
+    res.render('viewAccount');
+});
 /**
  * Attempts to log a user into the website. Either returns true if successful, or false if unsuccessful.
  */
+
 router.get('/login', async function (req, res, next) {
     if (!req.query.username || !req.query.password) {
         return res.render('loginPage', {error: ""});
@@ -45,7 +50,9 @@ router.get('/login', async function (req, res, next) {
 
     if (Array.isArray(user) && user.length) {
         req.session.user = user[0];
+        req.session.username = (await crypt.decrypt(crypt.arrayToBuffer(user[0].username), KEY)).toString("utf-8");
         return res.redirect('/');
+        
     } else {
         delete req.session.user;
         return res.render('loginPage', {error: "Incorrect credentials."});
