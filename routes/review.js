@@ -20,6 +20,7 @@ const pool = mysql.createPool(sqlConfig);
  */
 router.post('/add-review', async function(req, res) {
     // Ensure a user is logged in and the proper parameters are presen
+    console.log("add results",req.body);
     if (!req.session.user) {
         return res.redirect("/user/login");
     } else if (!req.body.isbn && !req.body.review) {
@@ -43,8 +44,8 @@ router.post('/add-review', async function(req, res) {
         review: req.body.review
     };
 
-    query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, CURDATE(), ?);';
-    values = [data.userId, data.bookId, data.review, 3];
+    query = 'INSERT INTO Review VALUES(NULL, ?, ?, ?, CURDATE());';
+    values = [data.userId, data.bookId, data.review];
 
     let result = await dbQuery(query, values).catch((err) => {
         console.log(err);
@@ -121,6 +122,8 @@ router.post('/add-rating', async function(req, res) {
 router.get('/get-review', async function(req, res) {
     let query = "SELECT * FROM Review WHERE ";
 
+    console.log("debug", req.query); 
+
     if (req.query.reviewId) {
         query += "reviewId = ?";
         let reviews = await dbQuery(query, req.query.reviewId);
@@ -177,19 +180,19 @@ router.put('/update-review', async function(req, res) {
     } else if (!req.body.reviewId && !req.body.review) {
         return res.json({ success: false });
     }
+    console.log("update-review debug", req.body);
+     let reviewId = req.body.reviewId;
+    // let query = "SELECT * FROM Review WHERE reviewId = ? LIMIT 1;";
+    //let review = await dbQuery(query, reviewId);
 
-    let reviewId = req.body.reviewId;
-    let query = "SELECT * FROM Review WHERE reviewId = ? LIMIT 1;";
-    let review = await dbQuery(query, reviewId);
-
-    if (!review[0]) {
-        return res.json({ success: false });
-    }
+    // if (!review[0]) {
+    //     return res.json({ success: false });
+    // }
 
     let reviewText = req.body.review;
 
-    query = 'UPDATE Review SET review = ? WHERE reviewId = ?;';
-    const values = [reviewText, review[0].reviewId];
+    let query = 'UPDATE Review SET review = ? WHERE reviewId = ?;';
+    const values = [reviewText, req.body.reviewId];
 
     let result = await dbQuery(query, values);
 
@@ -206,9 +209,11 @@ router.put('/update-rating', async function(req, res) {
         return res.json({ success: false });
     }
 
+
     let query = "SELECT * FROM Rating WHERE userId = ? AND bookId = ? LIMIT 1;";
     let values = [req.session.user.userId, req.body.bookId];
     let rating = await dbQuery(query, values);
+
 
     if (!rating[0]) {
         return res.json({ success: false });
@@ -228,6 +233,7 @@ router.put('/update-rating', async function(req, res) {
  */
 router.delete('/delete-review', async function(req, res) {
     // Ensure a user is logged in and all required parameters are present
+    console.log("BODYYYYYYYYY",req.body);
     if (!req.session.user) {
         return res.redirect("/user/login");
     } else if (!req.body.reviewId || !req.body.userId || !req.body.bookId || !req.body.review) {
