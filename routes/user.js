@@ -69,7 +69,9 @@ router.get('/login', async function (req, res, next) {
 router.get('/logout', async function (req, res, next) {
     delete req.session.user;
     // return res.json({ success: true });
-    delete req.session.username;
+    if (req.session.username) {
+        delete req.session.username;
+    }
     return res.redirect("/");
 });
 
