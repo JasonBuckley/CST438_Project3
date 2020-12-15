@@ -52,14 +52,13 @@ router.get('/login', async function (req, res, next) {
 
     if (Array.isArray(user) && user.length) {
         req.session.user = user[0];
-
         req.session.username = (await crypt.decrypt(crypt.arrayToBuffer(user[0].username), KEY)).toString("utf-8");
-        
         
         return res.json({ success: true });
 
     } else {
         delete req.session.user;
+        delete req.session.username;
         return res.json({ success: false , msg: "Incorrect Credentials!"});
     }
 });
