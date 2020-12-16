@@ -190,7 +190,7 @@ async function checkUsername(username, raw_username) {
             } else {
                 if (Array.isArray(results) && results.length > 0 && results[0].userId > -1) {
                     reject("Username already used");
-                } else if (raw_username.length < 8 && raw_username.length > 32) {
+                } else if (raw_username.length < 8 || raw_username.length > 32 || raw_username.includes(" ")) {
                     reject("Invalid Username");
                 }
 
