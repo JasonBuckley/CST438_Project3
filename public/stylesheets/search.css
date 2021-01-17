@@ -2,9 +2,7 @@
 .search-results {
   display: flex;
   flex-wrap: wrap;
-  width: 60%;
-  margin: auto;
-  padding: 10px;
+  justify-content: center;
 }
 
 .book {
